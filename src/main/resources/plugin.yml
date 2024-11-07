@@ -1,0 +1,8 @@
+name: UHC
+main: me.ean.Main
+version: 1.0
+
+commands:
+  testborder:
+    description: testiram border
+    permission: op
