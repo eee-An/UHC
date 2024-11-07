@@ -2,6 +2,8 @@ package me.ean;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Objects;
+
 public class Main extends JavaPlugin {
     private static Main instance;
 
@@ -13,6 +15,6 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        this.getCommand("testborder").setExecutor(new WorldBorderMover(this));
+        Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
     }
 }
