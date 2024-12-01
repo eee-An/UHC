@@ -1,8 +1,20 @@
 name: UHC
 main: me.ean.Main
 version: 1.0
+api-version: 1.20
+depend:
+  - WorldEdit
 
 commands:
   testborder:
     description: testiram border
+    permission: op
+  startuhc:
+    description: start uhc
+    permission: op
+  resetstate:
+    description: resetstate
+    permission: op
+  bacisupplydrop:
+    description: supplyaj drop
     permission: op
