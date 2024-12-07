@@ -1,15 +1,14 @@
 package me.ean;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,10 +18,9 @@ import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
@@ -32,11 +30,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private List<Player> igraci = new ArrayList<>();
     private World uhcWorld;
     private List<Location> spawnLokacije = new ArrayList<>();
+    private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
 
     @Override
-    public void onEnable() {
+    public void onEnable(){
         instance = this;
         uhcWorld = Bukkit.getWorld("world");
+
+        YamlDocument config;
+        try {
+            config = YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         spawnLokacije.add(new Location(uhcWorld, 0, 98, 0));
         spawnLokacije.add(new Location(uhcWorld, 1, 98, 1));
         spawnLokacije.add(new Location(uhcWorld, -1, 98, -1));
@@ -48,6 +55,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         this.getCommand("bacisupplydrop").setExecutor(this);
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
         Bukkit.getPluginManager().registerEvents(this, this);
+
+        config.set("Test", 7);
+
+        try {
+            config.save();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @EventHandler
@@ -61,6 +76,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     public void onPlayerQuit(PlayerQuitEvent event) {
         if (state == GameState.WAITING || state == GameState.COUNTDOWN) {
             igraci.remove(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void gappleCounter(PlayerItemConsumeEvent event){
+        Player player = event.getPlayer();
+        if (igraci.contains(player) && event.getItem().getType() == Material.ENCHANTED_GOLDEN_APPLE) {
+            int count = pojedeneJabuke.getOrDefault(player, 0);
+            if (count >= 3) {
+                event.setCancelled(true);
+                player.sendMessage("Mićo, već si pojeo 3 gappla!");
+            } else {
+                pojedeneJabuke.put(player, count + 1);
+            }
         }
     }
 

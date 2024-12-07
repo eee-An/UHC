@@ -118,7 +118,7 @@ public class SupplyDrop {
                 for (FallingBlock fallingBlock : parts) {
                     if (!fallingBlock.isDead() && !fallingBlock.isOnGround()) {
                         Vector vel = fallingBlock.getVelocity();
-                        vel.setY(-0.25);
+                        vel.setY(-0.05);
                         fallingBlock.setVelocity(vel);
                     }
                 }
