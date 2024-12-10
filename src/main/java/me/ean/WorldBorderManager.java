@@ -20,12 +20,18 @@ public class WorldBorderManager {
         this.isResizing = false;
     }
 
-    public void scheduleBorderMovement(double centerX, double centerZ, long ticks) {
+    public void scheduleBorderMovement(double centerX, double centerZ, double size, int delay, int duration) {
         movementQueue.add(() -> {
-            AtomicInteger remainingTicks = new AtomicInteger((int) ticks);
+            try {
+                Thread.sleep(delay * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            AtomicInteger remainingTicks = new AtomicInteger(duration * 20);
             Vector start = border.getCenter().toVector();
             Vector end = new Vector(centerX, 0, centerZ);
-            Vector step = end.subtract(start).multiply(1.0 / ticks);
+            Vector step = end.subtract(start).multiply(1.0 / remainingTicks.get());
 
             new BukkitRunnable() {
                 @Override
@@ -34,6 +40,7 @@ public class WorldBorderManager {
                         border.setCenter(border.getCenter().add(step));
                     } else {
                         border.setCenter(centerX, centerZ);
+                        border.setSize(size);
                         isResizing = false;
                         processNextMovement();
                         cancel();
@@ -56,7 +63,7 @@ public class WorldBorderManager {
                     isResizing = false;
                     processNextMovement();
                 }
-            }.runTaskLater(plugin, seconds*20);
+            }.runTaskLater(plugin, seconds * 20);
         });
 
         if (!isResizing) {

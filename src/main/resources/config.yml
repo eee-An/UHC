@@ -1,0 +1,31 @@
+## src/main/resources/config.yml
+world-name: world
+spawn-locations:
+  - {x: 0, y: 98, z: 0}
+  - {x: 1, y: 98, z: 1}
+  - {x: -1, y: 98, z: -1}
+  - {x: 2, y: 98, z: 2}
+  - {x: -2, y: 98, z: -2}
+
+## Gapple limit
+max-golden-apples: 3
+gapple-limit-warning-message: "Dosao si do limita zlatnih jabuka!"
+
+## Border movements
+# centerX, centerZ - center of the border
+# size - size of the border
+# delay - delay before the border starts moving
+# duration - duration of the border movement
+border-movements:
+  - {centerX: 0.0, centerZ: 0.0, size: 50.0, delay: 10, duration: 10}
+  - {centerX: 0.0, centerZ: 10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 10.0, centerZ: 10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 10.0, centerZ: 0.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 10.0, centerZ: -10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 0.0, centerZ: -10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: -10.0, centerZ: -10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: -10.0, centerZ: 0.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: -10.0, centerZ: 10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 0.0, centerZ: 10.0, size: 100.0, delay: 10, duration: 100}
+  - {centerX: 0.0, centerZ: 0.0, size: 100.0, delay: 10, duration: 100}
+

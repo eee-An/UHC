@@ -35,20 +35,31 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @Override
     public void onEnable(){
         instance = this;
-        uhcWorld = Bukkit.getWorld("world");
+
+
+        // Copy the default config if it doesn't exist
+        File configFile = new File(getDataFolder(), "config.yml");
+        if (!configFile.exists()) {
+            saveResource("config.yml", false);
+        }
 
         YamlDocument config;
         try {
-            config = YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"));
+            config = YamlDocument.create(configFile, getResource("config.yml"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        spawnLokacije.add(new Location(uhcWorld, 0, 98, 0));
-        spawnLokacije.add(new Location(uhcWorld, 1, 98, 1));
-        spawnLokacije.add(new Location(uhcWorld, -1, 98, -1));
-        spawnLokacije.add(new Location(uhcWorld, 2, 98, 2));
-        spawnLokacije.add(new Location(uhcWorld, -2, 98, -2));
+        String worldName = config.getString("world-name");
+        uhcWorld = Bukkit.getWorld(worldName);
+
+        List<Map<?, ?>> spawnLocations = getConfig().getMapList("spawn-locations");
+        for (Map<?, ?> loc : spawnLocations) {
+            double x = (double) loc.get("x");
+            double y = (double) loc.get("y");
+            double z = (double) loc.get("z");
+            spawnLokacije.add(new Location(uhcWorld, x, y, z));
+        }
 
         this.getCommand("startuhc").setExecutor(this);
         this.getCommand("resetstate").setExecutor(this);
@@ -56,7 +67,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
         Bukkit.getPluginManager().registerEvents(this, this);
 
-        config.set("Test", 7);
 
         try {
             config.save();
@@ -80,13 +90,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     @EventHandler
-    public void gappleCounter(PlayerItemConsumeEvent event){
+    public void gappleCounter(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
+        int limit = getConfig().getInt("max-golden-apples", 3);
+        String warningMessage = getConfig().getString("gapple-limit-warning-message", "You have reached the maximum number of golden apples!");
         if (igraci.contains(player) && event.getItem().getType() == Material.ENCHANTED_GOLDEN_APPLE) {
             int count = pojedeneJabuke.getOrDefault(player, 0);
-            if (count >= 3) {
+            if (count >= limit) {
                 event.setCancelled(true);
-                player.sendMessage("Mićo, već si pojeo 3 gappla!");
+                player.sendMessage(warningMessage);
             } else {
                 pojedeneJabuke.put(player, count + 1);
             }
@@ -145,10 +157,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         Scoreboard srca = Bukkit.getScoreboardManager().getNewScoreboard();
         srca.registerNewObjective("hp", Criteria.HEALTH, "srca", RenderType.HEARTS);
 
-        // TODO: teleportiraj igrace, odradi sve sto treba
-        // TODO: Treba pobrisati ec!
+        // TODO: teleportiraj igrace, odradi sve sto treba za pocetak igre  (npr. border, supply drops, ...)
         igraci.forEach(p -> {
             p.getInventory().clear();
+            p.getEnderChest().clear();
             p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
             p.setScoreboard(srca);
         });
@@ -156,20 +168,16 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         WorldBorder border = uhcWorld.getWorldBorder();
         WorldBorderManager borderManager = new WorldBorderManager(this, border);
-        border.setCenter(0.0, 0.0);
-        border.setSize(50.0);
-        borderManager.scheduleBorderResize(10.0, 10);
-        borderManager.scheduleBorderMovement(0.0, 10.0, 100);
-        borderManager.scheduleBorderMovement(10.0, 10.0, 100);
-        borderManager.scheduleBorderMovement(10.0, 0.0, 100);
-        borderManager.scheduleBorderMovement(10.0, -10.0, 100);
-        borderManager.scheduleBorderMovement(0.0, -10.0, 100);
-        borderManager.scheduleBorderMovement(-10.0, -10.0, 100);
-        borderManager.scheduleBorderMovement(-10.0, 0.0, 100);
-        borderManager.scheduleBorderMovement(-10.0, 10.0, 100);
-        borderManager.scheduleBorderMovement(0, 10.0, 100);
-        borderManager.scheduleBorderMovement(0, 0.0, 100);
 
+        List<Map<?, ?>> borderMovements = getConfig().getMapList("border-movements");
+        for (Map<?, ?> movement : borderMovements) {
+            double centerX = (double) movement.get("centerX");
+            double centerZ = (double) movement.get("centerZ");
+            double size = (double) movement.get("size");
+            int delay = (int) movement.get("delay");
+            int duration = (int) movement.get("duration");
+            borderManager.scheduleBorderMovement(centerX, centerZ, size, delay, duration);
+        }
 
     }
 }
