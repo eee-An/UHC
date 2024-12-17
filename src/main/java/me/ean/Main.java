@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,19 +32,18 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private World uhcWorld;
     private List<Location> spawnLokacije = new ArrayList<>();
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
+    private File configFile = new File(getDataFolder(), "config.yml");
+    private YamlDocument config;
 
     @Override
     public void onEnable(){
         instance = this;
 
-
         // Copy the default config if it doesn't exist
-        File configFile = new File(getDataFolder(), "config.yml");
         if (!configFile.exists()) {
             saveResource("config.yml", false);
         }
 
-        YamlDocument config;
         try {
             config = YamlDocument.create(configFile, getResource("config.yml"));
         } catch (IOException e) {
@@ -55,9 +55,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         List<Map<?, ?>> spawnLocations = getConfig().getMapList("spawn-locations");
         for (Map<?, ?> loc : spawnLocations) {
-            double x = (double) loc.get("x");
-            double y = (double) loc.get("y");
-            double z = (double) loc.get("z");
+            double x = (double) loc.get("X");
+            double y = (double) loc.get("Y");
+            double z = (double) loc.get("Z");
             spawnLokacije.add(new Location(uhcWorld, x, y, z));
         }
 
@@ -171,8 +171,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         List<Map<?, ?>> borderMovements = getConfig().getMapList("border-movements");
         for (Map<?, ?> movement : borderMovements) {
-            double centerX = (double) movement.get("centerX");
-            double centerZ = (double) movement.get("centerZ");
+            double centerX = (double) movement.get("X");
+            double centerZ = (double) movement.get("Z");
             double size = (double) movement.get("size");
             int delay = (int) movement.get("delay");
             int duration = (int) movement.get("duration");
