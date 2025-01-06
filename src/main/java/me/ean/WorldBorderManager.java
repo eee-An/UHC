@@ -1,13 +1,13 @@
 package me.ean;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorldBorderManager {
     private final Main plugin;
@@ -29,39 +29,46 @@ public class WorldBorderManager {
 
                 @Override
                 public void run() {
-                    ticks++;
                     int[] warningTimes = plugin.getConfig().getIntegerList("border-movement-start-warning-times").stream().mapToInt(i -> i).toArray();
-                    int secondsLeft = delay - ticks / 20;
+                    long ticksLeft = (delay - ticks);
 
                     for (int warningTime : warningTimes) {
-                        if (secondsLeft == warningTime) {
+                        if (ticksLeft == (long) warningTime * 20) {
                             Bukkit.broadcastMessage(plugin.getConfig().getString("border-movement-start-warning-message").replace("{seconds}", String.valueOf(warningTime)));
                         }
                     }
-                    if (ticks == delay * 20) {
+                    if (ticks == delay) {
                         Bukkit.broadcastMessage(plugin.getConfig().getString("border-movement-start-message"));
                         this.cancel();
-                    }
+                    }ticks++;
                 }
             }.runTaskTimer(plugin, 0, 1);
 
-            AtomicInteger remainingTicks = new AtomicInteger(duration * 20);
             Vector start = border.getCenter().toVector();
             Vector end = new Vector(centerX, 0, centerZ);
-            Vector step = end.subtract(start).multiply(1.0 / remainingTicks.get());
+            Vector step = end.subtract(start).multiply(1.0 / (duration + 1));
+            Location currentLocation = border.getCenter();
 
             new BukkitRunnable() {
+                int currentTick = 0;
+                final int lastTick = delay + duration;
+
                 @Override
                 public void run() {
-                    if (remainingTicks.decrementAndGet() > 0) {
-                        border.setCenter(border.getCenter().add(step));
-                    } else {
+                    if (currentTick == lastTick) {
                         border.setCenter(centerX, centerZ);
                         border.setSize(size);
                         isResizing = false;
                         processNextMovement();
                         cancel();
+                        return;
+                    } else if (currentTick >= delay) {
+                        if (currentTick == delay) {
+                            border.setSize(size, duration / 20);
+                        }
+                        border.setCenter(currentLocation.add(step));
                     }
+                    currentTick++;
                 }
             }.runTaskTimer(plugin, 0, 1);
         });

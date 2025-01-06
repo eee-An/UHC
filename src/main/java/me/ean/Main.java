@@ -17,12 +17,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @Getter
@@ -55,9 +53,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         List<Map<?, ?>> spawnLocations = getConfig().getMapList("spawn-locations");
         for (Map<?, ?> loc : spawnLocations) {
-            double x = (double) loc.get("X");
-            double y = (double) loc.get("Y");
-            double z = (double) loc.get("Z");
+            double x = ((Number) loc.get("X")).doubleValue();
+            double y = ((Number) loc.get("Y")).doubleValue();
+            double z = ((Number) loc.get("Z")).doubleValue();
             spawnLokacije.add(new Location(uhcWorld, x, y, z));
         }
 
@@ -66,7 +64,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         this.getCommand("bacisupplydrop").setExecutor(this);
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
         Bukkit.getPluginManager().registerEvents(this, this);
-
 
         try {
             config.save();
@@ -92,8 +89,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @EventHandler
     public void gappleCounter(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        int limit = getConfig().getInt("max-golden-apples", 3);
-        String warningMessage = getConfig().getString("gapple-limit-warning-message", "You have reached the maximum number of golden apples!");
+        int limit = getConfig().getInt("max-golden-apples");
+        String warningMessage = getConfig().getString("gapple-limit-warning-message");
         if (igraci.contains(player) && event.getItem().getType() == Material.ENCHANTED_GOLDEN_APPLE) {
             int count = pojedeneJabuke.getOrDefault(player, 0);
             if (count >= limit) {
@@ -161,7 +158,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         igraci.forEach(p -> {
             p.getInventory().clear();
             p.getEnderChest().clear();
-            p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
+            //  p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
+            getServer().getScheduler().runTaskLater(this, () -> p.teleport(spawnLokacije.remove(0)), 1);
             p.setScoreboard(srca);
         });
 
@@ -176,7 +174,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             double size = (double) movement.get("size");
             int delay = (int) movement.get("delay");
             int duration = (int) movement.get("duration");
-            borderManager.scheduleBorderMovement(centerX, centerZ, size, delay, duration);
+            borderManager.scheduleBorderMovement(centerX, centerZ, size, delay * 20, duration * 20);
         }
 
     }
