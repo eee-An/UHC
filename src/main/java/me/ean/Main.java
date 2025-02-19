@@ -32,6 +32,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
     private File configFile = new File(getDataFolder(), "config.yml");
     private YamlDocument config;
+    private boolean uhcActive = false;
+
 
     @Override
     public void onEnable(){
@@ -70,6 +72,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        // Register the item pickup listener
+        getServer().getPluginManager().registerEvents(new ItemPickupListener(this), this);
+
+        // Register the player kill listener
+        getServer().getPluginManager().registerEvents(new PlayerKillListener(this), this);
+
+        // Register command
+        this.getCommand("enduhc").setExecutor(new EndUHCCommand(this));
     }
 
     @EventHandler
@@ -84,6 +95,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (state == GameState.WAITING || state == GameState.COUNTDOWN) {
             igraci.remove(event.getPlayer());
         }
+    }
+
+    public void endUHC() {
+        uhcActive = false;
+        // Additional logic to end UHC, if needed
+    }
+
+    public boolean isUhcActive() {
+        return uhcActive;
     }
 
     @EventHandler
@@ -147,6 +167,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     public void startUHC(CommandSender sender) {
         if (!provjeriJelMoguceStartat(sender))
             return;
+        uhcActive = true;
         state = GameState.PLAYING;
 
         Collections.shuffle(spawnLokacije);
@@ -178,4 +199,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
 
     }
+
+
 }
