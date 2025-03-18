@@ -11,9 +11,9 @@ public class SpecialItemCreator {
         ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
         ItemMeta meta = totem.getItemMeta();
         if (meta != null) {
-            meta.setLore(Collections.singletonList("Special Item"));
+            meta.setLore(Collections.singletonList("Special UHC Item"));
             totem.setItemMeta(meta);
         }
-        return totem;
+        return NBTUtil.addCustomTag(totem, "SpecialItem");
     }
 }

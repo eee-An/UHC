@@ -6,7 +6,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
@@ -27,13 +26,13 @@ public class ItemPickupListener implements Listener {
         String removalMessage = plugin.getConfig().getString("banned-item-removal-message");
         ItemStack item = event.getCurrentItem();
         if (item != null && bannedItems.contains(item.getType().name())) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null && meta.getLore() != null && meta.getLore().contains("Special Item")) {
+            if (NBTUtil.hasCustomTag(item)) {
                 return; // Do not remove special items
             }
             event.setCurrentItem(null);
-            assert removalMessage != null;
-            event.getWhoClicked().sendMessage(String.format(removalMessage, item.getType().name()));
+            if (removalMessage != null) {
+                event.getWhoClicked().sendMessage(String.format(removalMessage, item.getType().name()));
+            }
         }
     }
 
@@ -52,14 +51,14 @@ public class ItemPickupListener implements Listener {
         String removalMessage = plugin.getConfig().getString("banned-item-removal-message");
         ItemStack item = event.getItem().getItemStack();
         if (item != null && bannedItems.contains(item.getType().name())) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null && meta.getLore() != null && meta.getLore().contains("Special Item")) {
+            if (NBTUtil.hasCustomTag(item)) {
                 return; // Do not remove special items
             }
+            event.setCancelled(true);
             event.getItem().remove();
-            player.getInventory().removeItem(item);
-            assert removalMessage != null;
-            player.sendMessage(String.format(removalMessage, item.getType().name()));
+            if (removalMessage != null) {
+                player.sendMessage(String.format(removalMessage, item.getType().name()));
+            }
         }
     }
 }

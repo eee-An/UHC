@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.LinkedList;
@@ -14,6 +15,7 @@ public class WorldBorderManager {
     private final WorldBorder border;
     private boolean isResizing;
     private final Queue<Runnable> movementQueue = new LinkedList<>();
+    private BukkitTask currentTask;
 
     public WorldBorderManager(Main plugin, WorldBorder border) {
         this.plugin = plugin;
@@ -23,8 +25,7 @@ public class WorldBorderManager {
 
     public void scheduleBorderMovement(double centerX, double centerZ, double size, int delay, int duration) {
         movementQueue.add(() -> {
-
-            new BukkitRunnable() {
+            currentTask = new BukkitRunnable() {
                 int ticks = 0;
 
                 @Override
@@ -40,7 +41,8 @@ public class WorldBorderManager {
                     if (ticks == delay) {
                         Bukkit.broadcastMessage(plugin.getConfig().getString("border-movement-start-message"));
                         this.cancel();
-                    }ticks++;
+                    }
+                    ticks++;
                 }
             }.runTaskTimer(plugin, 0, 1);
 
@@ -49,7 +51,7 @@ public class WorldBorderManager {
             Vector step = end.subtract(start).multiply(1.0 / (duration + 1));
             Location currentLocation = border.getCenter();
 
-            new BukkitRunnable() {
+            currentTask = new BukkitRunnable() {
                 int currentTick = 0;
                 final int lastTick = delay + duration;
 
@@ -81,7 +83,7 @@ public class WorldBorderManager {
     public void scheduleBorderResize(double size, long seconds) {
         movementQueue.add(() -> {
             border.setSize(size, seconds);
-            new BukkitRunnable() {
+            currentTask = new BukkitRunnable() {
                 @Override
                 public void run() {
                     isResizing = false;
@@ -92,6 +94,15 @@ public class WorldBorderManager {
 
         if (!isResizing) {
             processNextMovement();
+        }
+    }
+
+    public void clearScheduledMovements() {
+        movementQueue.clear();
+        isResizing = false;
+        if (currentTask != null) {
+            currentTask.cancel();
+            currentTask = null;
         }
     }
 

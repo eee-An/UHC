@@ -33,6 +33,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private File configFile = new File(getDataFolder(), "config.yml");
     private YamlDocument config;
     private boolean uhcActive = false;
+    private WorldBorderManager borderManager;
 
 
     @Override
@@ -80,7 +81,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         getServer().getPluginManager().registerEvents(new PlayerKillListener(this), this);
 
         // Register command
-        this.getCommand("enduhc").setExecutor(new EndUHCCommand(this));
+        World world = getServer().getWorld("world");
+        if (world != null) {
+            borderManager = new WorldBorderManager(this, world.getWorldBorder());
+        }
+        this.getCommand("enduhc").setExecutor(new EndUHCCommand(this, borderManager));
     }
 
     @EventHandler
@@ -104,6 +109,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     public boolean isUhcActive() {
         return uhcActive;
+    }
+
+    public void setUhcActive(boolean uhcActive) {
+        this.uhcActive = uhcActive;
     }
 
     @EventHandler
