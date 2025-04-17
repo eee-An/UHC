@@ -2,6 +2,7 @@ package me.ean;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -13,13 +14,16 @@ import java.util.Queue;
 public class WorldBorderManager {
     private final Main plugin;
     private final WorldBorder border;
+    private final ParticleManager particleManager;
     private boolean isResizing;
     private final Queue<Runnable> movementQueue = new LinkedList<>();
     private BukkitTask currentTask;
+    private BukkitTask particleTask;
 
     public WorldBorderManager(Main plugin, WorldBorder border) {
         this.plugin = plugin;
         this.border = border;
+        this.particleManager = new ParticleManager(plugin); // Initialize ParticleManager
         this.isResizing = false;
     }
 
@@ -51,6 +55,7 @@ public class WorldBorderManager {
             Vector step = end.subtract(start).multiply(1.0 / (duration + 1));
             Location currentLocation = border.getCenter();
 
+            startBorderCenterParticles(); // Start particles when border movement begins
             currentTask = new BukkitRunnable() {
                 int currentTick = 0;
                 final int lastTick = delay + duration;
@@ -61,6 +66,7 @@ public class WorldBorderManager {
                         border.setCenter(centerX, centerZ);
                         border.setSize(size);
                         isResizing = false;
+                        stopBorderCenterParticles(); // Stop particles when movement ends
                         processNextMovement();
                         cancel();
                         return;
@@ -111,6 +117,34 @@ public class WorldBorderManager {
         if (nextMovement != null) {
             isResizing = true;
             nextMovement.run();
+        }
+    }
+
+    public void startBorderCenterParticles() {
+        if (particleTask != null && !particleTask.isCancelled()) {
+            return; // Prevent multiple tasks from running
+        }
+
+        particleTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                World world = border.getWorld();
+                if (world != null) {
+                    Location center = border.getCenter();
+                    particleManager.spawnBorderCenterParticles(world, center); // Use ParticleManager
+                }
+            }
+        }.runTaskTimer(plugin, 0, 5); // Runs every second (20 ticks)
+    }
+
+    public ParticleManager getParticleManager() {
+        return particleManager;
+    }
+
+    public void stopBorderCenterParticles() {
+        if (particleTask != null) {
+            particleTask.cancel();
+            particleTask = null;
         }
     }
 }

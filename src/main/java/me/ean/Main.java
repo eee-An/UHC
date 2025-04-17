@@ -189,8 +189,23 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             p.getInventory().clear();
             p.getEnderChest().clear();
             //  p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
-            getServer().getScheduler().runTaskLater(this, () -> p.teleport(spawnLokacije.remove(0)), 1);
-            p.setScoreboard(srca);
+            getServer().getScheduler().runTaskLater(this, () -> {
+                Location spawnLocation = spawnLokacije.remove(0);
+                p.teleport(spawnLocation);
+                p.setGameMode(GameMode.SURVIVAL);
+                p.setHealth(20);
+                p.setFoodLevel(20);
+                p.setLevel(0);
+                p.setExp(0);
+                p.setScoreboard(srca);
+
+                // Dodavanje particlesa na blok na kojem igrač stoji
+                Location blockLocation = spawnLocation.clone();
+                blockLocation.setY(blockLocation.getBlockY() + 1); // Postavite particle malo iznad bloka
+                borderManager.getParticleManager().spawnCustomEffect(blockLocation);
+            }, 1);
+
+
         });
 
 
