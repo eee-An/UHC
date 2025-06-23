@@ -19,15 +19,15 @@ gapple-limit-warning-message: "Dosao si do limita zlatnih jabuka!"
 border-movements:
   - {X: 0.0, Z: 0.0, size: 10.0, delay: 10, duration: 10}
   - {X: 0.0, Z: 10.0, size: 10.0, delay: 3, duration: 10}
-  - {X: 10.0, Z: 10.0, size: 20.0, delay: 3, duration: 10}
-  - {X: 10.0, Z: 0.0, size: 20.0, delay: 3, duration: 10}
-  - {X: 10.0, Z: -10.0, size: 20.0, delay: 3, duration: 10}
-  - {X: 0.0, Z: -10.0, size: 10.0, delay: 3, duration: 10}
-  - {X: -10.0, Z: -10.0, size: 10.0, delay: 3, duration: 10}
-  - {X: -10.0, Z: 0.0, size: 10.0, delay: 3, duration: 10}
-  - {X: -10.0, Z: 10.0, size: 10.0, delay: 3, duration: 10}
-  - {X: 0.0, Z: 10.0, size: 10.0, delay: 3, duration: 10}
-  - {X: 0.0, Z: 0.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: 10.0, Z: 10.0, size: 20.0, delay: 3, duration: 10}
+#  - {X: 10.0, Z: 0.0, size: 20.0, delay: 3, duration: 10}
+#  - {X: 10.0, Z: -10.0, size: 20.0, delay: 3, duration: 10}
+#  - {X: 0.0, Z: -10.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: -10.0, Z: -10.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: -10.0, Z: 0.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: -10.0, Z: 10.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: 0.0, Z: 10.0, size: 10.0, delay: 3, duration: 10}
+#  - {X: 0.0, Z: 0.0, size: 10.0, delay: 3, duration: 10}
 
 border-movement-start-message: "Border se pokrenuo!"
 border-movement-start-warning-message: "Border ce se pokrenuti za {seconds} sekundi!"
@@ -39,3 +39,6 @@ banned-items:
   - NETHERITE_AXE
   - TOTEM_OF_UNDYING
 
+# Loot tables for supply drops
+supply-drop-loot-table: minecraft:chests/desert_pyramid
+supply-drop-landing-message: "Supply drop je pao na: {x}, {y}, {z}!"

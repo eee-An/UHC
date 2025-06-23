@@ -4,12 +4,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Barrel;
+import org.bukkit.block.Block;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class SupplyDrop {
     private final List<FallingBlock> parts = new ArrayList<>();
@@ -98,6 +103,19 @@ public class SupplyDrop {
 
                                 // TODO: ovdje dodajemo kod koji ce provjeriti jesmo li postavili barrel i ako je barrel
                                 // onda ga napunimo itemstackovima
+
+                                if (world.getBlockAt(targetLocation).getType() == Material.BARREL) {
+                                    // Access the barrel's inventory and populate it
+                                    Barrel barrel = (Barrel) targetLocation.getBlock().getState();
+                                    populateLoot(barrel);
+                                    //barrel.update();
+
+                                    Bukkit.broadcastMessage(Main.getInstance().getConfig().getString("supply-drop-landing-message")
+                                            .replace("{x}", String.valueOf(barrel.getLocation().getBlockX()))
+                                            .replace("{y}", String.valueOf(barrel.getLocation().getBlockY()))
+                                            .replace("{z}", String.valueOf(barrel.getLocation().getBlockZ())));
+
+                                }
                             }
                         }
                     }
@@ -124,5 +142,18 @@ public class SupplyDrop {
                 }
             }
         }.runTaskTimer(Main.getInstance(), 0, 1);
+    }
+
+
+    private void populateLoot(Barrel barrel) {
+        String lootTableName = Main.getInstance().getConfig().getString("supply-drop-loot-table");
+
+        try {
+            // Set the loot table for the barrel
+            barrel.setLootTable(Bukkit.getLootTable(org.bukkit.NamespacedKey.fromString(lootTableName)));
+            barrel.update();
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().warning("Invalid loot table name: " + lootTableName);
+        }
     }
 }
