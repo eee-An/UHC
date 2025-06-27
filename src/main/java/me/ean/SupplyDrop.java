@@ -194,6 +194,28 @@ public class SupplyDrop {
                             .ignoreAirBlocks(false)
                             .build());
                 }
+                // Iterate through the schematic region to find barrels
+                clipboard.getRegion().forEach(blockVector -> {
+                    BlockVector3 relativeVector = blockVector.subtract(clipboard.getRegion().getMinimumPoint());
+                    org.bukkit.Location blockLocation = new org.bukkit.Location(
+                            bukkitWorld,
+                            location.x() + relativeVector.x(),
+                            location.y() + relativeVector.y(),
+                            location.z() + relativeVector.z()
+                    );
+
+                    if (blockLocation.getBlock().getState() instanceof Barrel barrel) {
+                        populateLoot(barrel); // Populate loot in the barrel
+
+                        // Log the coordinates of the drop
+                        Bukkit.broadcastMessage(Main.getInstance().getConfig().getString("supply-drop-landing-message")
+                                .replace("{x}", String.valueOf(barrel.getLocation().getBlockX()))
+                                .replace("{y}", String.valueOf(barrel.getLocation().getBlockY()))
+                                .replace("{z}", String.valueOf(barrel.getLocation().getBlockZ())));
+                    }
+                });
+
+
             }
         } catch (Exception e) {
             getLogger().severe("Failed to load or paste schematic: " + e.getMessage());
