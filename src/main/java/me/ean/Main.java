@@ -74,6 +74,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             throw new RuntimeException(e);
         }
 
+        // Save the schematic file to the plugin's data folder
+        saveDefaultSchematic("balon.schem");
+
         // Register the item pickup listener
         getServer().getPluginManager().registerEvents(new ItemPickupListener(this), this);
 
@@ -224,5 +227,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     }
 
+    private void saveDefaultSchematic(String fileName) {
+        File schematicFile = new File(getDataFolder(), fileName);
+        if (!schematicFile.exists()) {
+            saveResource(fileName, false);
+            getLogger().info("Schematic file '" + fileName + "' has been saved to the plugin data folder.");
+        }
+    }
 
 }
