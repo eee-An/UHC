@@ -19,6 +19,7 @@ import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -160,8 +161,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 sender.sendMessage("konzola ne moze bacati dropove");
                 return true;
             }
-            SupplyDrop drop = new SupplyDrop(uhcWorld, 2, 98, -5, 4, 102, -3);
-            drop.dropAt(player.getLocation().clone().add(0, 10.0, 0));
+            SupplyDrop drop = new SupplyDrop(uhcWorld);
+            try {
+                drop.dropAt(player.getLocation().clone().add(0, 10.0, 0));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             player.sendMessage("Spawnan supply drop");
         }
         

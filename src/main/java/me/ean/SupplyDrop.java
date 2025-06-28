@@ -1,7 +1,9 @@
 package me.ean;
 
+import com.sk89q.worldedit.world.block.BlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Barrel;
 import org.bukkit.entity.FallingBlock;
@@ -21,6 +23,7 @@ import com.sk89q.worldedit.WorldEdit;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -30,29 +33,23 @@ import static org.bukkit.Bukkit.getLogger;
 public class SupplyDrop {
     private final List<FallingBlock> parts = new ArrayList<>();
     private final World world;
-    private final int x1, y1, z1, x2, y2, z2;
 
-    public SupplyDrop(World world, int x1, int y1, int z1, int x2, int y2, int z2) {
+    public SupplyDrop(World world) {
         this.world = world;
-        assert x1 <= x2 && y1 <= y2 && z1 <= z2;
-        this.x1 = x1;
-        this.y1 = y1;
-        this.z1 = z1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.z2 = z2;
     }
 
-    public void dropAt(Location location) {
+    public void dropAt(Location location) throws FileNotFoundException {
         if (location.getWorld() == null) {
             location.setWorld(world);
         }
 
+        // In your dropAt method, after determining baseLocation:
         File schematicFile = new File(Main.getInstance().getDataFolder(), "balon.schem");
         if (!schematicFile.exists()) {
             getLogger().warning("Schematic file 'balon.schem' not found!");
             return;
         }
+
 
         try (FileInputStream fis = new FileInputStream(schematicFile)) {
             ClipboardFormat format = ClipboardFormats.findByFile(schematicFile);
@@ -65,10 +62,13 @@ public class SupplyDrop {
             try (ClipboardReader reader = format.getReader(fis)) {
                 clipboard = reader.read();
             }
+            BlockVector3 centerOffset = findCenterOffset(clipboard);
 
+            // Calculate spawn base so barrel lands at target location
+            Location spawnBase = location.clone().subtract(centerOffset.x(), centerOffset.y(), centerOffset.z());
             // Use iterateSchematicBlocksWithoutGetters to process blocks
-            iterateSchematicBlocksWithoutGetters(clipboard, location, (blockVector, spawnLocation) -> {
-                com.sk89q.worldedit.world.block.BlockState blockState = clipboard.getBlock(blockVector);
+            iterateSchematicBlocksWithoutGetters(clipboard, spawnBase, (blockVector, spawnLocation) -> {
+                BlockState blockState = clipboard.getBlock(blockVector);
                 if (!blockState.getBlockType().getMaterial().isAir()) {
                     FallingBlock fallingBlock = spawnLocation.getWorld().spawnFallingBlock(
                             spawnLocation,
@@ -80,62 +80,72 @@ public class SupplyDrop {
                 }
             });
 
+
+            // Continue with the existing logic for handling falling blocks
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    boolean nestoJePalo = false;
+                    Location baseLocation = null;
+
+                    for (FallingBlock fallingBlock : parts) {
+                        boolean landed = fallingBlock.isDead() || fallingBlock.isOnGround();
+
+                        if (!landed) {
+                            Location loc = fallingBlock.getLocation();
+                            Location below = loc.clone().subtract(0, 1, 0);
+                            boolean blockBelowSolid = !below.getBlock().isEmpty();
+
+                            // Only consider landed if the block is just above a solid block and very close to the next integer Y
+                            if (blockBelowSolid && (loc.getY() - below.getBlockY() < 0.1)) {
+                                landed = true;
+                            }
+                        }
+
+                        if (landed) {
+                            if (baseLocation == null) {
+                                baseLocation = fallingBlock.getLocation().getBlock().getLocation();
+                                baseLocation.setX(location.getX());
+                                baseLocation.setZ(location.getZ());
+                            }
+                            nestoJePalo = true;
+                            break;
+                        }
+                    }
+
+                    // Paste the schematic at the base location
+
+                    // In your BukkitRunnable, before pasting:
+                    if (nestoJePalo && baseLocation != null) {
+                        // Remove all falling blocks first
+                        for (FallingBlock block : parts) {
+                            if (!block.isDead()) {
+                                block.remove();
+                            }
+                        }
+                        parts.clear();
+
+                        BlockVector3 pasteLocation = BlockVector3.at(spawnBase.getBlockX(),baseLocation.getBlockY(),spawnBase.getBlockZ());
+                        pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
+
+                        this.cancel();
+                        return;
+                    }
+
+                    // Continue applying custom gravity if none landed
+                    for (FallingBlock fallingBlock : parts) {
+                        if (!fallingBlock.isDead() && !fallingBlock.isOnGround()) {
+                            Vector vel = fallingBlock.getVelocity();
+                            vel.setY(-0.05);
+                            fallingBlock.setVelocity(vel);
+                        }
+                    }
+                }
+            }.runTaskTimer(Main.getInstance(), 0, 1);
         } catch (Exception e) {
             getLogger().severe("Failed to load schematic for falling blocks: " + e.getMessage());
             e.printStackTrace();
         }
-
-        // Continue with the existing logic for handling falling blocks
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                boolean nestoJePalo = false;
-                Location baseLocation = null;
-
-                for (FallingBlock fallingBlock : parts) {
-                    if (fallingBlock.isDead() || fallingBlock.isOnGround()) {
-                        if (baseLocation == null) {
-                            baseLocation = fallingBlock.getLocation().getBlock().getLocation();
-                            baseLocation.setX(location.getX());
-                            baseLocation.setZ(location.getZ());
-                        }
-                        nestoJePalo = true;
-                        break;
-                    }
-                }
-
-                if (nestoJePalo) {
-                    // Paste the schematic at the base location
-                    File schematicFile = new File(Main.getInstance().getDataFolder(), "balon.schem");
-                    if (schematicFile.exists()) {
-                        BlockVector3 pasteLocation = BlockVector3.at(baseLocation.getBlockX(), baseLocation.getBlockY(), baseLocation.getBlockZ());
-                        pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
-                    } else {
-                        getLogger().warning("Schematic file 'balon.schem' not found!");
-                    }
-
-                    // Cleanup remaining falling blocks
-                    for (FallingBlock block : parts) {
-                        if (!block.isDead()) {
-                            block.remove();
-                        }
-                    }
-
-                    this.cancel();
-                    parts.clear();
-                    return;
-                }
-
-                // Continue applying custom gravity if none landed
-                for (FallingBlock fallingBlock : parts) {
-                    if (!fallingBlock.isDead() && !fallingBlock.isOnGround()) {
-                        Vector vel = fallingBlock.getVelocity();
-                        vel.setY(-0.05);
-                        fallingBlock.setVelocity(vel);
-                    }
-                }
-            }
-        }.runTaskTimer(Main.getInstance(), 0, 1);
     }
 
 
@@ -144,14 +154,14 @@ public class SupplyDrop {
 
         try {
             // Set the loot table for the barrel
-            barrel.setLootTable(Bukkit.getLootTable(org.bukkit.NamespacedKey.fromString(lootTableName)));
+            barrel.setLootTable(Bukkit.getLootTable(NamespacedKey.fromString(lootTableName)));
             barrel.update();
         } catch (IllegalArgumentException e) {
             getLogger().warning("Invalid loot table name: " + lootTableName);
         }
     }
 
-    public void pasteSchematic(File schematicFile, org.bukkit.World bukkitWorld, BlockVector3 location) {
+    public void pasteSchematic(File schematicFile, World bukkitWorld, BlockVector3 location) {
 
 //        File tschematicFile = new File(Main.getInstance().getDataFolder(), "balon.schem");
 //        if (!tschematicFile.exists()) {
@@ -197,7 +207,7 @@ public class SupplyDrop {
                 // Iterate through the schematic region to find barrels
                 clipboard.getRegion().forEach(blockVector -> {
                     BlockVector3 relativeVector = blockVector.subtract(clipboard.getRegion().getMinimumPoint());
-                    org.bukkit.Location blockLocation = new org.bukkit.Location(
+                    Location blockLocation = new Location(
                             bukkitWorld,
                             location.x() + relativeVector.x(),
                             location.y() + relativeVector.y(),
@@ -235,4 +245,15 @@ public class SupplyDrop {
             blockProcessor.accept(blockVector, relativeLocation);
         });
     }
+
+    // Calculates the center offset of the schematic (relative to min point)
+    private BlockVector3 findCenterOffset(Clipboard clipboard) {
+        BlockVector3 min = clipboard.getRegion().getMinimumPoint();
+        BlockVector3 max = clipboard.getRegion().getMaximumPoint();
+        int centerX = (min.x() + max.x()) / 2 - min.x();
+        int centerY = 0; // Y centering is usually not needed for drops
+        int centerZ = (min.z() + max.z()) / 2 - min.z();
+        return BlockVector3.at(centerX, centerY, centerZ);
+    }
+
 }
