@@ -1,5 +1,6 @@
 package me.ean;
 
+import com.google.errorprone.annotations.SuppressPackageLocation;
 import com.sk89q.worldedit.world.block.BlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,14 +29,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+
 import static org.bukkit.Bukkit.getLogger;
 
-public class SupplyDrop {
+public class SupplyDrop implements Listener {
     private final List<FallingBlock> parts = new ArrayList<>();
     private final World world;
+    private Location dropLocation;
+    private Location barrelLocation;
+    private DropCompassBar compassBar;
 
     public SupplyDrop(World world) {
         this.world = world;
+        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
     }
 
     public void dropAt(Location location) throws FileNotFoundException {
@@ -128,6 +138,9 @@ public class SupplyDrop {
                         BlockVector3 pasteLocation = BlockVector3.at(spawnBase.getBlockX(),baseLocation.getBlockY(),spawnBase.getBlockZ());
                         pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
 
+                        SupplyDrop.this.dropLocation = baseLocation;
+                        SupplyDrop.this.compassBar = new DropCompassBar(baseLocation);
+
                         this.cancel();
                         return;
                     }
@@ -216,12 +229,16 @@ public class SupplyDrop {
 
                     if (blockLocation.getBlock().getState() instanceof Barrel barrel) {
                         populateLoot(barrel); // Populate loot in the barrel
+//                        // Optionally, you can set the barrel's custom name or other properties here
 
-                        // Log the coordinates of the drop
-                        Bukkit.broadcastMessage(Main.getInstance().getConfig().getString("supply-drop-landing-message")
-                                .replace("{x}", String.valueOf(barrel.getLocation().getBlockX()))
-                                .replace("{y}", String.valueOf(barrel.getLocation().getBlockY()))
-                                .replace("{z}", String.valueOf(barrel.getLocation().getBlockZ())));
+                        barrel.setCustomName("Supply Drop Barrel");
+                        barrelLocation =  barrel.getLocation();
+
+//                        // Log the coordinates of the drop
+//                        Bukkit.broadcastMessage(Main.getInstance().getConfig().getString("supply-drop-landing-message")
+//                                .replace("{x}", String.valueOf(barrel.getLocation().getBlockX()))
+//                                .replace("{y}", String.valueOf(barrel.getLocation().getBlockY()))
+//                                .replace("{z}", String.valueOf(barrel.getLocation().getBlockZ())));
                     }
                 });
 
@@ -256,4 +273,35 @@ public class SupplyDrop {
         return BlockVector3.at(centerX, centerY, centerZ);
     }
 
+    @EventHandler
+    public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        Bukkit.broadcastMessage("Event pokrenut!");
+        if (event.getClickedBlock() == null) return;
+        if (dropLocation == null) return;
+
+        if (event.getClickedBlock().getType() == org.bukkit.Material.BARREL &&
+                event.getClickedBlock().getLocation().equals(barrelLocation) &&
+                event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+
+            Bukkit.broadcastMessage("Otvoren drop!");
+            if (compassBar != null) compassBar.remove();
+            dropOpened();
+        }
+    }
+
+    private static final int SHOW_DROP_MESSAGE_TICKS = 140; // 7 seconds (20 ticks per second)
+    private int ticksElapsed = 0;
+
+    public void dropOpened() {
+        ticksElapsed = 0;
+        if (compassBar != null) {
+            compassBar.setTitle(Main.getInstance().getConfig().getString("supply-drop-opened-message"));
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    compassBar.remove();
+                }
+            }.runTaskLater(Main.getInstance(), SHOW_DROP_MESSAGE_TICKS);
+        }
+    }
 }

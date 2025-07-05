@@ -42,3 +42,4 @@ banned-items:
 # Loot tables for supply drops
 supply-drop-loot-table: minecraft:chests/desert_pyramid
 supply-drop-landing-message: "Supply drop je pao na: {x}, {y}, {z}!"
+supply-drop-opened-message: "Supply drop je otvoren!"
