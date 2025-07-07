@@ -8,27 +8,28 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.*;
 import lombok.Getter;
 
+@Getter
 public class configValues {
-    private final @Getter JavaPlugin plugin;
-    private @Getter String worldName;
-    private @Getter List<Location> spawnLokacije = new ArrayList<>();
+    private final JavaPlugin plugin;
+    private String worldName;
+    private List<Location> spawnLokacije = new ArrayList<>();
 
-    private @Getter int goldenAppleLimit;
-    private @Getter String goldenAppleLimitWarningMessage;
+    private int goldenAppleLimit;
+    private String goldenAppleLimitWarningMessage;
 
-    private @Getter List<Map<?, ?>> borderMovements;
-    private @Getter String borderMovementStartMessage;
-    private @Getter String borderMovementStartWarningMessage;
-    private @Getter List<Integer> borderMovementStartWarningTimes;
+    private List<Map<?, ?>> borderMovements;
+    private String borderMovementStartMessage;
+    private String borderMovementStartWarningMessage;
+    private List<Integer> borderMovementStartWarningTimes;
 
-    private @Getter String bannedItemRemovealMessage;
-    private @Getter List<String> bannedItems;
+    private String bannedItemRemovealMessage;
+    private List<String> bannedItems;
 
-    private @Getter String supplyDropLootable;
-    private @Getter String supplyDropLandingMessage;
-    private @Getter String supplyDropOpenedMessage;
+    private String supplyDropLootable;
+    private String supplyDropLandingMessage;
+    private String supplyDropOpenedMessage;
 
-    private @Getter YamlDocument config;
+    private YamlDocument config;
 
     public configValues(JavaPlugin plugin, YamlDocument config) {
         this.plugin = plugin;
