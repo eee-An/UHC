@@ -29,13 +29,13 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private GameState state = GameState.WAITING;
     private List<Player> igraci = new ArrayList<>();
     private World uhcWorld;
-    private List<Location> spawnLokacije = new ArrayList<>();
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
     private File configFile = new File(getDataFolder(), "config.yml");
     private YamlDocument config;
     private boolean uhcActive = false;
     private WorldBorderManager borderManager;
 
+    private @Getter configValues configValues;
 
     @Override
     public void onEnable(){
@@ -52,16 +52,13 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             throw new RuntimeException(e);
         }
 
-        String worldName = config.getString("world-name");
+        // Load the config values
+        configValues = new configValues(this, config);
+        configValues.loadConfigValues();
+
+        String worldName = configValues.getWorldName();
         uhcWorld = Bukkit.getWorld(worldName);
 
-        List<Map<?, ?>> spawnLocations = getConfig().getMapList("spawn-locations");
-        for (Map<?, ?> loc : spawnLocations) {
-            double x = ((Number) loc.get("X")).doubleValue();
-            double y = ((Number) loc.get("Y")).doubleValue();
-            double z = ((Number) loc.get("Z")).doubleValue();
-            spawnLokacije.add(new Location(uhcWorld, x, y, z));
-        }
 
         this.getCommand("startuhc").setExecutor(this);
         this.getCommand("resetstate").setExecutor(this);
@@ -122,8 +119,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @EventHandler
     public void gappleCounter(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
-        int limit = getConfig().getInt("max-golden-apples");
-        String warningMessage = getConfig().getString("gapple-limit-warning-message");
+        int limit = configValues.getGoldenAppleLimit();
+        String warningMessage = configValues.getGoldenAppleLimitWarningMessage();
         if (igraci.contains(player) && event.getItem().getType() == Material.ENCHANTED_GOLDEN_APPLE) {
             int count = pojedeneJabuke.getOrDefault(player, 0);
             if (count >= limit) {
@@ -151,6 +148,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                         this.cancel();
                     } else if (ticks % 20 == 1) {
                         Bukkit.broadcastMessage("UHC pocinje za " + (101 - ticks) / 20 + " sekundi!");
+                        //TODO: Sredi broadcast preko titla
                     }
                 }
             }.runTaskTimer(this, 0, 1);
@@ -167,14 +165,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
-            player.sendMessage("Spawnan supply drop");
+//            player.sendMessage("Spawnan supply drop");
         }
         
         return true;
     }
 
     public boolean provjeriJelMoguceStartat(CommandSender sender) {
-        if (igraci.size() > spawnLokacije.size()) {
+        if (igraci.size() > configValues.getSpawnLokacije().size()) {
             sender.sendMessage("ima vise igraca nego spawn lokacija!!");
             return false;
         }
@@ -187,7 +185,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         uhcActive = true;
         state = GameState.PLAYING;
 
-        Collections.shuffle(spawnLokacije);
+        Collections.shuffle(configValues.getSpawnLokacije());
 
         Scoreboard srca = Bukkit.getScoreboardManager().getNewScoreboard();
         srca.registerNewObjective("hp", Criteria.HEALTH, "srca", RenderType.HEARTS);
@@ -198,7 +196,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             p.getEnderChest().clear();
             //  p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
             getServer().getScheduler().runTaskLater(this, () -> {
-                Location spawnLocation = spawnLokacije.remove(0);
+                Location spawnLocation = configValues.getSpawnLokacije().remove(0);
                 p.teleport(spawnLocation);
                 p.setGameMode(GameMode.SURVIVAL);
                 p.setHealth(20);
@@ -220,8 +218,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         WorldBorder border = uhcWorld.getWorldBorder();
         WorldBorderManager borderManager = new WorldBorderManager(this, border);
 
-        List<Map<?, ?>> borderMovements = getConfig().getMapList("border-movements");
-        for (Map<?, ?> movement : borderMovements) {
+        for (Map<?, ?> movement : configValues.getBorderMovements()) {
             double centerX = (double) movement.get("X");
             double centerZ = (double) movement.get("Z");
             double size = (double) movement.get("size");

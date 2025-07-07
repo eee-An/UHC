@@ -32,4 +32,7 @@ public class ParticleManager {
             world.spawnParticle(Particle.FLAME, location.getX(), location.getY(), location.getZ(), 200, 0.5, 0.5, 0.5, 0.05, null, true);
         }
     }
+
+    //TODO: Particles for supply drops, player deaths, etc.
+
 }

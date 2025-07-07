@@ -15,6 +15,10 @@ public class DropCompassBar {
     private int ticksElapsed = 0;
     private static final int SHOW_DROP_MESSAGE_TICKS = 140; // 7 seconds * 20 ticks
 
+    private boolean showOpenedMessage = false;
+    private int openedMessageTicks = 0;
+    private String openedMessage = "";
+
     public DropCompassBar(Location dropLocation) {
         this.dropLocation = dropLocation.clone();
         this.bossBar = Bukkit.createBossBar("Compass", BarColor.BLUE, BarStyle.SOLID);
@@ -35,13 +39,23 @@ public class DropCompassBar {
                         bossBar.addPlayer(player);
                     }
                     if (ticksElapsed <= SHOW_DROP_MESSAGE_TICKS) {
-                        bossBar.setTitle(Main.getInstance().getConfig().getString("supply-drop-landing-message")
+                        bossBar.setTitle(Main.getInstance().getConfigValues().getSupplyDropLandingMessage()
                                 .replace("{x}",String.valueOf(dropLocation.getBlockX()))
                                 .replace("{y}", String.valueOf(dropLocation.getBlockY()))
                                 .replace("{z}", String.valueOf(dropLocation.getBlockZ())));
                     } else {
                         String direction = getPreciseCompassDirection(player, dropLocation);
                         bossBar.setTitle(direction);
+
+
+                    }
+                    // Handle the opened message timer
+                    if (showOpenedMessage) {
+                        bossBar.setTitle(openedMessage);
+                        openedMessageTicks -= 5; // updater runs every 5 ticks
+                        if (openedMessageTicks <= 0) {
+                            showOpenedMessage = false;
+                        }
                     }
                 }
             }
@@ -92,7 +106,9 @@ public class DropCompassBar {
     }
 
     public void setTitle(String title) {
-        bossBar.setTitle(title);
+        this.openedMessage = title;
+        this.showOpenedMessage = true;
+        this.openedMessageTicks = SHOW_DROP_MESSAGE_TICKS;
     }
 
 }

@@ -1,6 +1,5 @@
 package me.ean;
 
-import com.google.errorprone.annotations.SuppressPackageLocation;
 import com.sk89q.worldedit.world.block.BlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -29,12 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import static org.bukkit.Bukkit.getLogger;
+import org.bukkit.event.HandlerList;
 
 public class SupplyDrop implements Listener {
     private final List<FallingBlock> parts = new ArrayList<>();
@@ -43,7 +41,8 @@ public class SupplyDrop implements Listener {
     private Location barrelLocation;
     private DropCompassBar compassBar;
 
-    public SupplyDrop(World world) {
+
+    public SupplyDrop( World world) {
         this.world = world;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
     }
@@ -163,7 +162,7 @@ public class SupplyDrop implements Listener {
 
 
     private void populateLoot(Barrel barrel) {
-        String lootTableName = Main.getInstance().getConfig().getString("supply-drop-loot-table");
+        String lootTableName = Main.getInstance().getConfigValues().getSupplyDropLootable();
 
         try {
             // Set the loot table for the barrel
@@ -231,7 +230,7 @@ public class SupplyDrop implements Listener {
                         populateLoot(barrel); // Populate loot in the barrel
 //                        // Optionally, you can set the barrel's custom name or other properties here
 
-                        barrel.setCustomName("Supply Drop Barrel");
+                        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
                         barrelLocation =  barrel.getLocation();
 
 //                        // Log the coordinates of the drop
@@ -275,7 +274,7 @@ public class SupplyDrop implements Listener {
 
     @EventHandler
     public void onPlayerInteract(org.bukkit.event.player.PlayerInteractEvent event) {
-        Bukkit.broadcastMessage("Event pokrenut!");
+//        Bukkit.broadcastMessage("Event pokrenut!");
         if (event.getClickedBlock() == null) return;
         if (dropLocation == null) return;
 
@@ -283,9 +282,9 @@ public class SupplyDrop implements Listener {
                 event.getClickedBlock().getLocation().equals(barrelLocation) &&
                 event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
 
-            Bukkit.broadcastMessage("Otvoren drop!");
-            if (compassBar != null) compassBar.remove();
-            dropOpened();
+//            Bukkit.broadcastMessage("Otvoren drop!");
+            if (compassBar != null) dropOpened();
+
         }
     }
 
@@ -293,9 +292,10 @@ public class SupplyDrop implements Listener {
     private int ticksElapsed = 0;
 
     public void dropOpened() {
+        HandlerList.unregisterAll(this);
         ticksElapsed = 0;
         if (compassBar != null) {
-            compassBar.setTitle(Main.getInstance().getConfig().getString("supply-drop-opened-message"));
+            compassBar.setTitle(Main.getInstance().getConfigValues().getSupplyDropOpenedMessage());
             new BukkitRunnable() {
                 @Override
                 public void run() {

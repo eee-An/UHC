@@ -11,6 +11,8 @@ import java.util.List;
 
 public class ItemPickupListener implements Listener {
     private final Main plugin;
+    private final List<String> bannedItems = Main.getInstance().getConfigValues().getBannedItems();
+    private final String removalMessage = Main.getInstance().getConfigValues().getBannedItemRemovealMessage();
 
     public ItemPickupListener(Main plugin) {
         this.plugin = plugin;
@@ -21,10 +23,7 @@ public class ItemPickupListener implements Listener {
         if (!plugin.isUhcActive()) {
             return;
         }
-
-        List<String> bannedItems = plugin.getConfig().getStringList("banned-items");
-        String removalMessage = plugin.getConfig().getString("banned-item-removal-message");
-        ItemStack item = event.getCurrentItem();
+       ItemStack item = event.getCurrentItem();
         if (item != null && bannedItems.contains(item.getType().name())) {
             if (NBTUtil.hasCustomTag(item)) {
                 return; // Do not remove special items
@@ -47,8 +46,6 @@ public class ItemPickupListener implements Listener {
         }
 
         Player player = (Player) event.getEntity();
-        List<String> bannedItems = plugin.getConfig().getStringList("banned-items");
-        String removalMessage = plugin.getConfig().getString("banned-item-removal-message");
         ItemStack item = event.getItem().getItemStack();
         if (item != null && bannedItems.contains(item.getType().name())) {
             if (NBTUtil.hasCustomTag(item)) {

@@ -8,8 +8,8 @@ spawn-locations:
   - {X: -2.5, Y: 98, Z: -2.5}
 
 ## Gapple limit
-max-golden-apples: 3
-gapple-limit-warning-message: "Dosao si do limita zlatnih jabuka!"
+golden-apple-limit: 3
+golden-apple-limit-warning-message: "Dosao si do limita zlatnih jabuka!"
 
 ## Border movements
 # X, Z - center of the border movement (in blocks)
@@ -41,5 +41,5 @@ banned-items:
 
 # Loot tables for supply drops
 supply-drop-loot-table: minecraft:chests/desert_pyramid
-supply-drop-landing-message: "Supply drop je pao na: {x}, {y}, {z}!"
-supply-drop-opened-message: "Supply drop je otvoren!"
+supply-drop-landing-message: "§aSupply drop je pao na: §f{x}, {y}, {z}!"
+supply-drop-opened-message: "§eSupply drop je otvoren!"

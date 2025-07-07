@@ -34,16 +34,16 @@ public class WorldBorderManager {
 
                 @Override
                 public void run() {
-                    int[] warningTimes = plugin.getConfig().getIntegerList("border-movement-start-warning-times").stream().mapToInt(i -> i).toArray();
+                    int[] warningTimes = plugin.getConfigValues().getBorderMovementStartWarningTimes().stream().mapToInt(i -> i).toArray();
                     long ticksLeft = (delay - ticks);
 
                     for (int warningTime : warningTimes) {
                         if (ticksLeft == (long) warningTime * 20) {
-                            Bukkit.broadcastMessage(plugin.getConfig().getString("border-movement-start-warning-message").replace("{seconds}", String.valueOf(warningTime)));
+                            Bukkit.broadcastMessage(plugin.getConfigValues().getBorderMovementStartWarningMessage().replace("{seconds}", String.valueOf(warningTime)));
                         }
                     }
                     if (ticks == delay) {
-                        Bukkit.broadcastMessage(plugin.getConfig().getString("border-movement-start-message"));
+                        Bukkit.broadcastMessage(plugin.getConfigValues().getBorderMovementStartMessage());
                         this.cancel();
                     }
                     ticks++;

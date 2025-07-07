@@ -6,6 +6,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Collections;
 
+
+//TODO: Dodati mogucnost da se dodaju itemi kroz config file
 public class SpecialItemCreator {
     public static ItemStack createSpecialTotem() {
         ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
