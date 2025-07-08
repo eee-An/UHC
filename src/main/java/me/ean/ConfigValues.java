@@ -3,13 +3,12 @@ package me.ean;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import org.bukkit.*;
-import org.bukkit.loot.Lootable;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
-public class configValues {
+public class ConfigValues {
     private final JavaPlugin plugin;
     private String worldName;
     private List<Location> spawnLokacije = new ArrayList<>();
@@ -31,7 +30,7 @@ public class configValues {
 
     private YamlDocument config;
 
-    public configValues(JavaPlugin plugin, YamlDocument config) {
+    public ConfigValues(JavaPlugin plugin, YamlDocument config) {
         this.plugin = plugin;
         this.config = config;
     }

@@ -62,6 +62,11 @@ public class WorldBorderManager {
 
                 @Override
                 public void run() {
+                    if(!Main.getInstance().isUhcActive()){
+                        stopBorderCenterParticles(); // Stop particles if UHC is not active
+                        cancel();
+                        return;
+                    }
                     if (currentTick == lastTick) {
                         border.setCenter(centerX, centerZ);
                         border.setSize(size);

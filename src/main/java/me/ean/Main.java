@@ -35,7 +35,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private boolean uhcActive = false;
     private WorldBorderManager borderManager;
 
-    private @Getter configValues configValues;
+    private @Getter ConfigValues configValues;
 
     @Override
     public void onEnable(){
@@ -53,7 +53,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
 
         // Load the config values
-        configValues = new configValues(this, config);
+        configValues = new ConfigValues(this, config);
         configValues.loadConfigValues();
 
         String worldName = configValues.getWorldName();
