@@ -21,3 +21,6 @@ commands:
   enduhc:
     description: end uhc
     permission: op
+  configreload:
+    description: reloaduj config
+    permission: op

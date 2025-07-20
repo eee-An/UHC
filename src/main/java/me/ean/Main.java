@@ -63,7 +63,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         this.getCommand("startuhc").setExecutor(this);
         this.getCommand("resetstate").setExecutor(this);
         this.getCommand("bacisupplydrop").setExecutor(this);
+        this.getCommand("configreload").setExecutor(this);
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
+        this.getCommand("enduhc").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(this, this);
 
         try {
@@ -81,12 +83,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Register the player kill listener
         getServer().getPluginManager().registerEvents(new PlayerKillListener(this), this);
 
-        // Register command
         World world = getServer().getWorld("world");
         if (world != null) {
             borderManager = new WorldBorderManager(this, world.getWorldBorder());
         }
-        this.getCommand("enduhc").setExecutor(new EndUHCCommand(this, borderManager));
+
     }
 
     @EventHandler
@@ -103,10 +104,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
-    public void endUHC() {
-        uhcActive = false;
-        // Additional logic to end UHC, if needed
-    }
 
     public boolean isUhcActive() {
         return uhcActive;
@@ -166,8 +163,24 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 throw new RuntimeException(e);
             }
 //            player.sendMessage("Spawnan supply drop");
+        }else if (label.equalsIgnoreCase("enduhc")) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                if (player.hasPermission("uhc.end")) {
+                    endUHC();
+                    player.sendMessage("UHC has ended and the border has been reset.");
+                } else {
+                    player.sendMessage("You do not have permission to execute this command.");
+                }
+            } else {
+                endUHC();
+                sender.sendMessage("UHC has ended and the border has been reset.");
+            }
+            return true;
+        }else if (label.equalsIgnoreCase("configreload")) {
+            configValues.reloadConfig();
         }
-        
+
         return true;
     }
 
@@ -215,19 +228,48 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         });
 
 
-        WorldBorder border = uhcWorld.getWorldBorder();
-        WorldBorderManager borderManager = new WorldBorderManager(this, border);
+        // Schedule actions
 
-        for (Map<?, ?> movement : configValues.getBorderMovements()) {
-            double centerX = (double) movement.get("X");
-            double centerZ = (double) movement.get("Z");
-            double size = (double) movement.get("size");
-            int delay = (int) movement.get("delay");
-            int duration = (int) movement.get("duration");
-            borderManager.scheduleBorderMovement(centerX, centerZ, size, delay * 20, duration * 20);
+        long previousTime = 0;
+        for (ScheduledAction action : configValues.getScheduledActions()) {
+            long delayTicks = (action.getTime().getSeconds() - previousTime) * 20;
+            previousTime = action.getTime().getSeconds();
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                switch (action.getAction().toLowerCase()) {
+                    case "border":
+                        Bukkit.broadcastMessage("Pokretanje bordera!");
+                        borderManager.scheduleBorderMovement((double) action.getParams().get("X"),
+                                (double) action.getParams().get("Z"),
+                                (double) action.getParams().get("size"),
+                                (int) action.getParams().get("delay") * 20,
+                                (int) action.getParams().get("duration") * 20);
+                    case "supplydrop":
+                        Bukkit.broadcastMessage("Pada Supply Drop!");
+                        try {
+                            SupplyDrop drop = new SupplyDrop(uhcWorld);
+                            drop.dropAt(new Location(uhcWorld, (double) action.getParams().get("X"),
+                                    (double) action.getParams().get("Y"),
+                                    (double) action.getParams().get("Z")));
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        // Add more cases as needed
+                }
+            }, delayTicks);
         }
-
     }
+
+    private void endUHC(){
+        // Reset UHC-specific conditions
+        uhcActive = false;
+
+        // Clear scheduled border movements and reset the border
+        borderManager.clearScheduledMovements();
+        WorldBorder border = Bukkit.getWorld("world").getWorldBorder();
+        border.setSize(75); // Set the border to the initial size (e.g., 75 blocks)
+        border.setCenter(0, 0); // Set the border center to the initial position (e.g., 0, 0)
+    }
+
 
     private void saveDefaultSchematic(String fileName) {
         File schematicFile = new File(getDataFolder(), fileName);
