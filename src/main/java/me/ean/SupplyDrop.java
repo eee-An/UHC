@@ -32,20 +32,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import static org.bukkit.Bukkit.getLogger;
+
 import org.bukkit.event.HandlerList;
 
 public class SupplyDrop implements Listener {
-    private final List<FallingBlock> parts = new ArrayList<>();
+    private final List<FallingBlockWrapper> parts = new ArrayList<>();
     private final World world;
     private Location dropLocation;
     private Location barrelLocation;
     private DropCompassBar compassBar;
 
 
-    public SupplyDrop( World world) {
+    public SupplyDrop(World world) {
         this.world = world;
         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
     }
+
 
     public void dropAt(Location location) throws FileNotFoundException {
         if (location.getWorld() == null) {
@@ -79,13 +81,10 @@ public class SupplyDrop implements Listener {
             iterateSchematicBlocksWithoutGetters(clipboard, spawnBase, (blockVector, spawnLocation) -> {
                 BlockState blockState = clipboard.getBlock(blockVector);
                 if (!blockState.getBlockType().getMaterial().isAir()) {
-                    FallingBlock fallingBlock = spawnLocation.getWorld().spawnFallingBlock(
-                            spawnLocation,
-                            BukkitAdapter.adapt(blockState)
-                    );
+                    FallingBlock fallingBlock = spawnLocation.getWorld().spawnFallingBlock(spawnLocation, BukkitAdapter.adapt(blockState));
                     fallingBlock.setDropItem(false);
                     fallingBlock.setGlowing(true);
-                    parts.add(fallingBlock);
+                    parts.add(new FallingBlockWrapper(fallingBlock));
                 }
             });
 
@@ -97,23 +96,27 @@ public class SupplyDrop implements Listener {
                     boolean nestoJePalo = false;
                     Location baseLocation = null;
 
-                    for (FallingBlock fallingBlock : parts) {
-                        boolean landed = fallingBlock.isDead() || fallingBlock.isOnGround();
+                    for (int i = 0; i < parts.size(); i++) {
+                        FallingBlockWrapper wrapper = parts.get(i);
+                        wrapper.ageTicks++;
 
-                        if (!landed) {
-                            Location loc = fallingBlock.getLocation();
-                            Location below = loc.clone().subtract(0, 1, 0);
-                            boolean blockBelowSolid = !below.getBlock().isEmpty();
+                        boolean landed = wrapper.block.isDead() || wrapper.block.isOnGround();
 
-                            // Only consider landed if the block is just above a solid block and very close to the next integer Y
-                            if (blockBelowSolid && (loc.getY() - below.getBlockY() < 0.1)) {
-                                landed = true;
-                            }
+
+                        // Respawn block before it dies
+                        if (wrapper.ageTicks > 580 && !wrapper.block.isDead()) {
+                            Location loc = wrapper.block.getLocation();
+                            FallingBlock newBlock = loc.getWorld().spawnFallingBlock(loc, wrapper.block.getBlockData());
+                            newBlock.setDropItem(false);
+                            newBlock.setGlowing(true);
+                            parts.set(i, new FallingBlockWrapper(newBlock));
+                            wrapper.block.remove();
+                            continue;
                         }
 
                         if (landed) {
                             if (baseLocation == null) {
-                                baseLocation = fallingBlock.getLocation().getBlock().getLocation();
+                                baseLocation = wrapper.block.getLocation().getBlock().getLocation();
                                 baseLocation.setX(location.getX());
                                 baseLocation.setZ(location.getZ());
                             }
@@ -127,14 +130,14 @@ public class SupplyDrop implements Listener {
                     // In your BukkitRunnable, before pasting:
                     if (nestoJePalo && baseLocation != null) {
                         // Remove all falling blocks first
-                        for (FallingBlock block : parts) {
-                            if (!block.isDead()) {
-                                block.remove();
+                        for (FallingBlockWrapper wrapper : parts) {
+                            if (!wrapper.block.isDead()) {
+                                wrapper.block.remove();
                             }
                         }
                         parts.clear();
 
-                        BlockVector3 pasteLocation = BlockVector3.at(spawnBase.getBlockX(),baseLocation.getBlockY(),spawnBase.getBlockZ());
+                        BlockVector3 pasteLocation = BlockVector3.at(spawnBase.getBlockX(), baseLocation.getBlockY(), spawnBase.getBlockZ());
                         pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
 
                         SupplyDrop.this.dropLocation = baseLocation;
@@ -145,11 +148,11 @@ public class SupplyDrop implements Listener {
                     }
 
                     // Continue applying custom gravity if none landed
-                    for (FallingBlock fallingBlock : parts) {
-                        if (!fallingBlock.isDead() && !fallingBlock.isOnGround()) {
-                            Vector vel = fallingBlock.getVelocity();
-                            vel.setY(-0.05);
-                            fallingBlock.setVelocity(vel);
+                    for (FallingBlockWrapper wrapper : parts) {
+                        if (!wrapper.block.isDead() && !wrapper.block.isOnGround()) {
+                            Vector vel = wrapper.block.getVelocity();
+                            vel.setY(-Main.getInstance().getConfigValues().getSupplyDropDroppingSpeed());
+                            wrapper.block.setVelocity(vel);
                         }
                     }
                 }
@@ -201,8 +204,7 @@ public class SupplyDrop implements Listener {
             }
 
             // Read the schematic file
-            try (FileInputStream fis = new FileInputStream(schematicFile);
-                 ClipboardReader reader = format.getReader(fis)) {
+            try (FileInputStream fis = new FileInputStream(schematicFile); ClipboardReader reader = format.getReader(fis)) {
                 Clipboard clipboard = reader.read();
 
                 // Adapt the Bukkit world to a WorldEdit world
@@ -211,27 +213,19 @@ public class SupplyDrop implements Listener {
                 // Define the paste location
                 try (EditSession editSession = WorldEdit.getInstance().newEditSession(adaptedWorld)) {
                     ClipboardHolder holder = new ClipboardHolder(clipboard);
-                    Operations.complete(holder.createPaste(editSession)
-                            .to(location)
-                            .ignoreAirBlocks(false)
-                            .build());
+                    Operations.complete(holder.createPaste(editSession).to(location).ignoreAirBlocks(false).build());
                 }
                 // Iterate through the schematic region to find barrels
                 clipboard.getRegion().forEach(blockVector -> {
                     BlockVector3 relativeVector = blockVector.subtract(clipboard.getRegion().getMinimumPoint());
-                    Location blockLocation = new Location(
-                            bukkitWorld,
-                            location.x() + relativeVector.x(),
-                            location.y() + relativeVector.y(),
-                            location.z() + relativeVector.z()
-                    );
+                    Location blockLocation = new Location(bukkitWorld, location.x() + relativeVector.x(), location.y() + relativeVector.y(), location.z() + relativeVector.z());
 
                     if (blockLocation.getBlock().getState() instanceof Barrel barrel) {
                         populateLoot(barrel); // Populate loot in the barrel
 //                        // Optionally, you can set the barrel's custom name or other properties here
 
                         Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
-                        barrelLocation =  barrel.getLocation();
+                        barrelLocation = barrel.getLocation();
 
 //                        // Log the coordinates of the drop
 //                        Bukkit.broadcastMessage(Main.getInstance().getConfig().getString("supply-drop-landing-message")
@@ -253,11 +247,7 @@ public class SupplyDrop implements Listener {
         BlockVector3 minPoint = clipboard.getRegion().getMinimumPoint();
         clipboard.getRegion().forEach(blockVector -> {
             BlockVector3 relativeVector = blockVector.subtract(minPoint);
-            Location relativeLocation = baseLocation.clone().add(
-                    relativeVector.x(),
-                    relativeVector.y(),
-                    relativeVector.z()
-            );
+            Location relativeLocation = baseLocation.clone().add(relativeVector.x(), relativeVector.y(), relativeVector.z());
             blockProcessor.accept(blockVector, relativeLocation);
         });
     }
@@ -278,9 +268,7 @@ public class SupplyDrop implements Listener {
         if (event.getClickedBlock() == null) return;
         if (dropLocation == null) return;
 
-        if (event.getClickedBlock().getType() == org.bukkit.Material.BARREL &&
-                event.getClickedBlock().getLocation().equals(barrelLocation) &&
-                event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+        if (event.getClickedBlock().getType() == org.bukkit.Material.BARREL && event.getClickedBlock().getLocation().equals(barrelLocation) && event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
 
 //            Bukkit.broadcastMessage("Otvoren drop!");
             if (compassBar != null) dropOpened();
