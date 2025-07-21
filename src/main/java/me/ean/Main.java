@@ -230,29 +230,38 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         // Schedule actions
 
-        long previousTime = 0;
         for (ScheduledAction action : configValues.getScheduledActions()) {
-            long delayTicks = (action.getTime().getSeconds() - previousTime) * 20;
-            previousTime = action.getTime().getSeconds();
+            long delayTicks = (action.getTime().getSeconds()) * 20;
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 switch (action.getAction().toLowerCase()) {
-                    case "border":
+                    case "border": {
                         Bukkit.broadcastMessage("Pokretanje bordera!");
-                        borderManager.scheduleBorderMovement((double) action.getParams().get("X"),
+                        borderManager.scheduleBorderMovement(
+                                (double) action.getParams().get("X"),
                                 (double) action.getParams().get("Z"),
                                 (double) action.getParams().get("size"),
                                 (int) action.getParams().get("delay") * 20,
                                 (int) action.getParams().get("duration") * 20);
-                    case "supplydrop":
+                        break;
+                    }
+                    case "supplydrop":{
                         Bukkit.broadcastMessage("Pada Supply Drop!");
                         try {
                             SupplyDrop drop = new SupplyDrop(uhcWorld);
-                            drop.dropAt(new Location(uhcWorld, (double) action.getParams().get("X"),
+                            drop.dropAt(new Location(uhcWorld,
+                                    (double) action.getParams().get("X"),
                                     (double) action.getParams().get("Y"),
                                     (double) action.getParams().get("Z")));
+
+                            Bukkit.broadcastMessage("X,Y,Z: " +
+                                    action.getParams().get("X") + ", " +
+                                    action.getParams().get("Y") + ", " +
+                                    action.getParams().get("Z"));
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
+                        break;
+                    }
                         // Add more cases as needed
                 }
             }, delayTicks);

@@ -33,7 +33,7 @@ public class DropCompassBar {
         updater = new BukkitRunnable() {
             @Override
             public void run() {
-                ticksElapsed += 10;
+                ticksElapsed += 5;
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!bossBar.getPlayers().contains(player)) {
                         bossBar.addPlayer(player);

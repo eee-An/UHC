@@ -27,6 +27,7 @@ public class ConfigValues {
     private List<String> bannedItems;
 
     private String supplyDropLootable;
+    private double supplyDropDroppingSpeed;
     private String supplyDropLandingMessage;
     private String supplyDropOpenedMessage;
 
@@ -66,6 +67,7 @@ public class ConfigValues {
         bannedItems = config.getStringList("banned-items");
 
         supplyDropLootable = config.getString("supply-drop-loot-table");
+        supplyDropDroppingSpeed = config.getDouble("supply-drop-droping-speed");
         supplyDropLandingMessage = config.getString("supply-drop-landing-message");
         supplyDropOpenedMessage = config.getString("supply-drop-opened-message");
 

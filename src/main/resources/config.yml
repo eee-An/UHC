@@ -41,14 +41,15 @@ banned-items:
 
 # Loot tables for supply drops
 supply-drop-loot-table: minecraft:chests/desert_pyramid
+supply-drop-droping-speed: 0.05
 supply-drop-landing-message: "§aSupply drop je pao na: §f{x}, {y}, {z}!"
 supply-drop-opened-message: "§eSupply drop je otvoren!"
 
 # Scheduled actions
 scheduled-actions:
-  - time: "0:00:00"
+  - time: "0:00:10"
     action: "border"
     params: {X: 0.0, Z: 0.0, size: 100.0, delay: 10, duration: 30}
-  - time: "0:05:00"
+  - time: "0:00:30"
     action: "supplydrop"
-    params: {X: 10.0, Y: 320.0, Z: 10.0}
+    params: {X: 10.0, Y: 165.0, Z: 10.0}
