@@ -132,7 +132,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (label.equalsIgnoreCase("startuhc")) {
-            Bukkit.broadcastMessage("evo igraci: " + String.join(", ", igraci.stream().map(Player::getName).toList()));
+//            Bukkit.broadcastMessage("evo igraci: " + String.join(", ", igraci.stream().map(Player::getName).toList()));
             state = GameState.COUNTDOWN;
             new BukkitRunnable() {
                 int ticks = 0;
@@ -178,7 +178,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             }
             return true;
         }else if (label.equalsIgnoreCase("configreload")) {
-            configValues.reloadConfig();
+            sender.sendMessage("§aReloading config...");
+            try {
+                config.reload(); // Reload YAML from disk
+                configValues.loadConfigValues(); // Refresh config values
+                sender.sendMessage("§aConfig reloaded successfully.");
+            } catch (IOException e) {
+                sender.sendMessage("§cFailed to reload config: " + e.getMessage());
+            }
         }
 
         return true;
@@ -235,7 +242,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 switch (action.getAction().toLowerCase()) {
                     case "border": {
-                        Bukkit.broadcastMessage("Pokretanje bordera!");
+//                        Bukkit.broadcastMessage("Pokretanje bordera!");
                         borderManager.scheduleBorderMovement(
                                 (double) action.getParams().get("X"),
                                 (double) action.getParams().get("Z"),
@@ -245,7 +252,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                         break;
                     }
                     case "supplydrop":{
-                        Bukkit.broadcastMessage("Pada Supply Drop!");
+//                        Bukkit.broadcastMessage("Pada Supply Drop!");
                         try {
                             SupplyDrop drop = new SupplyDrop(uhcWorld);
                             drop.dropAt(new Location(uhcWorld,
@@ -253,10 +260,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                                     (double) action.getParams().get("Y"),
                                     (double) action.getParams().get("Z")));
 
-                            Bukkit.broadcastMessage("X,Y,Z: " +
-                                    action.getParams().get("X") + ", " +
-                                    action.getParams().get("Y") + ", " +
-                                    action.getParams().get("Z"));
+//                            Bukkit.broadcastMessage("X,Y,Z: " +
+//                                    action.getParams().get("X") + ", " +
+//                                    action.getParams().get("Y") + ", " +
+//                                    action.getParams().get("Z"));
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
@@ -287,5 +294,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             getLogger().info("Schematic file '" + fileName + "' has been saved to the plugin data folder.");
         }
     }
+
+
 
 }

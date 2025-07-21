@@ -1,10 +1,7 @@
 package me.ean;
 
 import com.sk89q.worldedit.world.block.BlockState;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Barrel;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -87,6 +84,8 @@ public class SupplyDrop implements Listener {
                     parts.add(new FallingBlockWrapper(fallingBlock));
                 }
             });
+
+            spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
 
 
             // Continue with the existing logic for handling falling blocks
@@ -291,5 +290,24 @@ public class SupplyDrop implements Listener {
                 }
             }.runTaskLater(Main.getInstance(), SHOW_DROP_MESSAGE_TICKS);
         }
+
+    }
+
+    // Spawns a beacon beam at the drop center
+    public void spawnBeaconWithBeam(World world, int x, int z) {
+        int yBeacon = world.getHighestBlockYAt(x, z);
+        Location beaconLoc = new Location(world, x, yBeacon, z);
+
+        // Place 3x3 iron block base
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                Location baseLoc = new Location(world, x + dx, yBeacon - 1, z + dz);
+                baseLoc.getBlock().setType(Material.IRON_BLOCK);
+            }
+        }
+
+        // Place the beacon
+        beaconLoc.getBlock().setType(Material.BEACON);
+        // Make sure nothing is above the beacon except air or glass
     }
 }
