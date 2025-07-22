@@ -142,6 +142,9 @@ public class SupplyDrop implements Listener {
                         SupplyDrop.this.dropLocation = baseLocation;
                         SupplyDrop.this.compassBar = new DropCompassBar(baseLocation);
 
+                        Main.getInstance().getParticleManager().spawnSupplyDropParticles(baseLocation);
+//                        Bukkit.broadcastMessage("Particles spawned at drop location: " + baseLocation);
+
                         this.cancel();
                         return;
                     }

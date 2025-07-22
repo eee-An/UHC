@@ -1,5 +1,6 @@
 package me.ean;
 
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -14,6 +15,7 @@ import java.util.Queue;
 public class WorldBorderManager {
     private final Main plugin;
     private final WorldBorder border;
+    @Getter
     private final ParticleManager particleManager;
     private boolean isResizing;
     private final Queue<Runnable> movementQueue = new LinkedList<>();
@@ -55,7 +57,7 @@ public class WorldBorderManager {
             Vector step = end.subtract(start).multiply(1.0 / (duration + 1));
             Location currentLocation = border.getCenter();
 
-            startBorderCenterParticles(); // Start particles when border movement begins
+//            startBorderCenterParticles(); // Start particles when border movement begins
             currentTask = new BukkitRunnable() {
                 int currentTick = 0;
                 final int lastTick = delay + duration;
@@ -140,10 +142,6 @@ public class WorldBorderManager {
                 }
             }
         }.runTaskTimer(plugin, 0, 5); // Runs every second (20 ticks)
-    }
-
-    public ParticleManager getParticleManager() {
-        return particleManager;
     }
 
     public void stopBorderCenterParticles() {

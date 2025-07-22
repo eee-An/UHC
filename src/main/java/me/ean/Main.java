@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
+
     @Getter
     private static Main instance;
     private GameState state = GameState.WAITING;
@@ -36,6 +37,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private WorldBorderManager borderManager;
 
     private @Getter ConfigValues configValues;
+    private @Getter ParticleManager particleManager = new ParticleManager(this);
 
     @Override
     public void onEnable(){
@@ -234,6 +236,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         });
 
+        borderManager.startBorderCenterParticles();
 
         // Schedule actions
 
@@ -284,6 +287,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         WorldBorder border = Bukkit.getWorld("world").getWorldBorder();
         border.setSize(75); // Set the border to the initial size (e.g., 75 blocks)
         border.setCenter(0, 0); // Set the border center to the initial position (e.g., 0, 0)
+
+        borderManager.stopBorderCenterParticles();
     }
 
 

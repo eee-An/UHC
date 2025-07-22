@@ -35,4 +35,27 @@ public class ParticleManager {
 
     //TODO: Particles for supply drops, player deaths, etc.
 
+    public void spawnSupplyDropParticles(Location location) {
+        World world = location.getWorld();
+        if (world != null) {
+            world.spawnParticle(Particle.CLOUD, location.getX(), location.getY() + 1, location.getZ(), 50, 0.5, 0.5, 0.5, 0.05, null, true);
+            world.spawnParticle(Particle.FIREWORKS_SPARK, location.getX(), location.getY() + 1 , location.getZ(), 20, 0.2, 0.2, 0.2, 0.01, null, true);
+        }
+    }
+
+    public void spawnPlayerDeathParticles(Location location) {
+        World world = location.getWorld();
+        if (world != null) {
+            world.spawnParticle(Particle.SMOKE_LARGE, location.getX(), location.getY() + 1, location.getZ(), 30, 0.5, 0.5, 0.5, 0.05, null, true);
+            world.spawnParticle(Particle.REDSTONE, location.getX(), location.getY() + 1, location.getZ(), 20, 0.2, 0.2, 0.2, 0.05, new Particle.DustOptions(org.bukkit.Color.RED, 1), true);
+        }
+    }
+
+    public void spawnLightningStrikeParticles(Location location) {
+        World world = location.getWorld();
+        if (world != null) {
+           world.strikeLightningEffect(location); // Optional: Summon a lightning strike at the location
+
+        }
+    }
 }

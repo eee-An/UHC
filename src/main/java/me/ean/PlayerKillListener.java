@@ -17,10 +17,13 @@ public class PlayerKillListener implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (plugin.isUhcActive() && event.getEntity().getKiller() != null) {
+        if (plugin.isUhcActive() && event.getEntity().getKiller() != null && event.getEntity().getKiller().getHealth() > 0) {
             ItemStack specialTotem = SpecialItemCreator.createSpecialTotem();
             event.getEntity().getKiller().getInventory().addItem(specialTotem);
         }
+
+        Main.getInstance().getParticleManager().spawnPlayerDeathParticles(event.getEntity().getLocation());
+        Main.getInstance().getParticleManager().spawnLightningStrikeParticles(event.getEntity().getLocation());
     }
 
     @EventHandler
