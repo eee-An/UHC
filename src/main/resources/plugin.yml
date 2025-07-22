@@ -24,3 +24,6 @@ commands:
   configreload:
     description: reloaduj config
     permission: op
+  winnerceremony:
+    description: testiram winner ceremony
+    permission: op

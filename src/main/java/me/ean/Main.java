@@ -38,6 +38,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     private @Getter ConfigValues configValues;
     private @Getter ParticleManager particleManager = new ParticleManager(this);
+    private WinnerCeremonyManager winnerCeremonyManager;
 
     @Override
     public void onEnable(){
@@ -68,6 +69,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         this.getCommand("configreload").setExecutor(this);
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
         this.getCommand("enduhc").setExecutor(this);
+        this.getCommand("winnerceremony").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(this, this);
 
         try {
@@ -188,8 +190,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             } catch (IOException e) {
                 sender.sendMessage("§cFailed to reload config: " + e.getMessage());
             }
+        } else if (label.equalsIgnoreCase("winnerceremony")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Konzola ne moze pokrenuti ceremoniju pobjednika.");
+                return true;
+            }
+            if (igraci.isEmpty()) {
+                player.sendMessage("Nema igraca za ceremoniju pobjednika.");
+                return true;
+            }
+            if (winnerCeremonyManager == null) {
+                winnerCeremonyManager = new WinnerCeremonyManager(this);
+            }
+            winnerCeremonyManager.celebrateWinner(player, player.getLocation());
         }
-
         return true;
     }
 
