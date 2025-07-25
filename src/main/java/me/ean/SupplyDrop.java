@@ -86,7 +86,7 @@ public class SupplyDrop implements Listener {
             });
 
             spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
-
+            Main.getInstance().setDropState(DropState.FALLING);
 
             // Continue with the existing logic for handling falling blocks
             new BukkitRunnable() {
@@ -120,6 +120,7 @@ public class SupplyDrop implements Listener {
                                 baseLocation.setZ(location.getZ());
                             }
                             nestoJePalo = true;
+                            Main.getInstance().setDropState(DropState.LANDED);
                             break;
                         }
                     }
@@ -283,6 +284,8 @@ public class SupplyDrop implements Listener {
 
     public void dropOpened() {
         HandlerList.unregisterAll(this);
+        Main.getInstance().setDropState(DropState.OPENED);
+
         ticksElapsed = 0;
         if (compassBar != null) {
             compassBar.setTitle(Main.getInstance().getConfigValues().getSupplyDropOpenedMessage());

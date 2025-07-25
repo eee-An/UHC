@@ -2,6 +2,7 @@ package me.ean;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -33,17 +34,26 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
     private File configFile = new File(getDataFolder(), "config.yml");
     private YamlDocument config;
+    @Getter
     private boolean uhcActive = false;
     private WorldBorderManager borderManager;
-
     private @Getter ConfigValues configValues;
     private @Getter ParticleManager particleManager = new ParticleManager(this);
     private WinnerCeremonyManager winnerCeremonyManager;
+    @Getter
+    static Map<Player, Integer> playerKills = new HashMap<>();
+    static List<Long> dropSeconds = new ArrayList<>();
+    static @Getter @Setter DropState dropState = DropState.WAITING; // Initial state for supply drop
+    static long uhcStartTime = -1;
+
+    public static @Getter final List<TopKiller> topKillers = new ArrayList<>();
+
 
     @Override
     public void onEnable(){
         instance = this;
 
+        new UHCPlaceholder(this).register();
         // Copy the default config if it doesn't exist
         if (!configFile.exists()) {
             saveResource("config.yml", false);
@@ -108,14 +118,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
-
-    public boolean isUhcActive() {
-        return uhcActive;
-    }
-
-    public void setUhcActive(boolean uhcActive) {
-        this.uhcActive = uhcActive;
-    }
 
     @EventHandler
     public void gappleCounter(PlayerItemConsumeEvent event) {
@@ -220,6 +222,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             return;
         uhcActive = true;
         state = GameState.PLAYING;
+        uhcStartTime = System.currentTimeMillis();
+
+        topKillers.clear();
 
         Collections.shuffle(configValues.getSpawnLokacije());
 
@@ -241,18 +246,34 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 p.setExp(0);
                 p.setScoreboard(srca);
 
+                playerKills.put(p, 0); // Inicijaliziraj broj ubistava za igrača
+
+
                 // Dodavanje particlesa na blok na kojem igrač stoji
                 Location blockLocation = spawnLocation.clone();
                 blockLocation.setY(blockLocation.getBlockY() + 1); // Postavite particle malo iznad bloka
                 borderManager.getParticleManager().spawnCustomEffect(blockLocation);
+
             }, 1);
 
 
         });
 
+
         borderManager.startBorderCenterParticles();
 
         // Schedule actions
+
+
+        for(ScheduledAction action : configValues.getScheduledActions()){
+            long time = action.getTime().getSeconds();
+            switch (action.getAction().toLowerCase()) {
+                case "supplydrop": {
+                    dropSeconds.add(time);
+                    break;
+                }
+            }
+        }
 
         for (ScheduledAction action : configValues.getScheduledActions()) {
             long delayTicks = (action.getTime().getSeconds()) * 20;
@@ -293,7 +314,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     private void endUHC(){
-        // Reset UHC-specific conditions
+        // Reset UHC-specific conditions:
         uhcActive = false;
 
         // Clear scheduled border movements and reset the border
@@ -314,6 +335,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
+    public static void addKill(Player player) {
+        for (TopKiller tk : topKillers) {
+            if (tk.getPlayer().equals(player)) {
+                tk.incrementKills();
+                topKillers.sort(null);
+                return;
+            }
+        }
+        topKillers.add(new TopKiller(player, 1));
+        topKillers.sort(null);
+    }
 
 
 }

@@ -5,6 +5,10 @@ api-version: 1.20
 depend:
   - WorldEdit
 
+softdepend: ["PlaceholderAPI"] #
+
+
+
 commands:
   testborder:
     description: testiram border
@@ -26,4 +30,7 @@ commands:
     permission: op
   winnerceremony:
     description: testiram winner ceremony
+    permission: op
+  sb:
+    description: pokazujem scoreboard
     permission: op
