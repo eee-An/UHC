@@ -291,11 +291,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         for(ScheduledAction action : configValues.getScheduledActions()){
             long time = action.getTime().getSeconds();
-            switch (action.getAction().toLowerCase()) {
-                case "supplydrop": {
-                    dropSeconds.add(time);
-                    break;
-                }
+            if (action.getAction().equalsIgnoreCase("supplydrop")) {
+                dropSeconds.add(time);
             }
         }
 
