@@ -76,14 +76,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         String worldName = configValues.getWorldName();
         uhcWorld = Bukkit.getWorld(worldName);
 
-
-        this.getCommand("startuhc").setExecutor(this);
-        this.getCommand("resetstate").setExecutor(this);
-        this.getCommand("bacisupplydrop").setExecutor(this);
-        this.getCommand("configreload").setExecutor(this);
+        registerCommands();
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
-        this.getCommand("enduhc").setExecutor(this);
-        this.getCommand("winnerceremony").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(this, this);
 
         try {
@@ -106,6 +100,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             borderManager = new WorldBorderManager(this, world.getWorldBorder());
         }
 
+    }
+
+    private void registerCommands() {
+        /* Register commands whose listener is this class (onCommand method) */
+        for (String command : Arrays.asList(
+                "startuhc", "resetstate", "bacisupplydrop", "configreload", "enduhc", "winnerceremony"
+        )) {
+            var cmd = getCommand(command);
+            if (cmd == null) {
+                getLogger().severe("Command '" + command + "' is not defined in plugin.yml!");
+            } else {
+                cmd.setExecutor(this);
+            }
+        }
     }
 
     @EventHandler
