@@ -58,15 +58,19 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         new UHCPlaceholder(this).register();
         winnerCeremonyManager = new WinnerCeremonyManager(this);
-        // Copy the default config if it doesn't exist
-        if (!configFile.exists()) {
-            saveResource("config.yml", false);
-        }
 
+        // Copy the default config if it doesn't exist
+        saveDefaultConfig();
+
+        var _config = getResource("config.yml");
+        if (_config == null) {
+            // Shouldn't happen.
+            throw new RuntimeException("Unable to create config.yml!");
+        }
         try {
-            yamlConfig = YamlDocument.create(configFile, getResource("config.yml"));
+            yamlConfig = YamlDocument.create(configFile, _config);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to parse config", e);
         }
 
         // Load the config values
