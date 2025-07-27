@@ -11,19 +11,19 @@ public class NBTUtil {
     private static final NamespacedKey key = new NamespacedKey("uhc", "SpecialItem");
 
     public static boolean hasCustomTag(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
+        var meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
             return false;
         }
-        ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         return container.has(key, PersistentDataType.STRING);
     }
 
     public static ItemStack addCustomTag(ItemStack item, String value) {
-        if (item == null || !item.hasItemMeta()) {
-            return item;
+        var meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
+            return null;
         }
-        ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(key, PersistentDataType.STRING, value);
         item.setItemMeta(meta);
@@ -31,10 +31,10 @@ public class NBTUtil {
     }
 
     public static ItemStack removeCustomTag(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
-            return item;
+        var meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
+            return null;
         }
-        ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.remove(key);
         item.setItemMeta(meta);
