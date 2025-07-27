@@ -1,2 +1,4 @@
 # Floxy UHC plugin
-By eee-An
+By eee-An  
+
+Hvala @IamMusavaRibica na pomoći
