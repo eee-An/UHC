@@ -14,7 +14,7 @@ import lombok.Getter;
 public class ConfigValues {
     private final JavaPlugin plugin;
     private String worldName;
-    private List<Location> spawnLokacije = new ArrayList<>();
+    private final List<Location> spawnLokacije = new ArrayList<>();
 
     private int goldenAppleLimit;
     private String goldenAppleLimitWarningMessage;
@@ -32,12 +32,12 @@ public class ConfigValues {
     private String supplyDropLandingMessage;
     private String supplyDropOpenedMessage;
 
-    private List<Location> winnerCeremonyWinnerTeleport = new ArrayList<>();
-    private List<Location> winnerCeremonySpectatorTeleport = new ArrayList<>();
+    private final List<Location> winnerCeremonyWinnerTeleport = new ArrayList<>();
+    private final List<Location> winnerCeremonySpectatorTeleport = new ArrayList<>();
 
-    private YamlDocument yamlConfig;
+    private final YamlDocument yamlConfig;
 
-    private List<ScheduledAction> scheduledActions = new ArrayList<>();
+    private final List<ScheduledAction> scheduledActions = new ArrayList<>();
 
     public ConfigValues(Main plugin, YamlDocument config) {
         this.plugin = plugin;
