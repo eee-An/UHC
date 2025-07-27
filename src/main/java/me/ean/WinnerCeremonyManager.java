@@ -71,7 +71,7 @@ public class WinnerCeremonyManager {
         Color[] colors = {Color.YELLOW, Color.RED, Color.ORANGE};
 
         Player finalWinner = winner;
-        new BukkitRunnable() {
+        BukkitRunnable updater = new BukkitRunnable() {
             int count = 0;
             @Override
             public void run() {
@@ -97,6 +97,8 @@ public class WinnerCeremonyManager {
                     firework.setFireworkMeta(meta);
                 }
             }
-        }.runTaskTimer(plugin, 0L, 40L);
+        };
+        plugin.registerTask(updater);
+        updater.runTaskTimer(plugin, 0L, 40L);
     }
 }

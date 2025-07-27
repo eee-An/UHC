@@ -42,28 +42,41 @@ public class PlayerKillListener implements Listener {
 
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            player.spigot().respawn(); // Instantly respawn the player
-            player.teleport(deathLocation); // Teleport to death location
-            player.setGameMode(GameMode.SPECTATOR); // Set to spectator mode
-            plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING); // Update player state
+        if (plugin.isUhcActive()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                player.spigot().respawn(); // Instantly respawn the player
+                player.teleport(deathLocation); // Teleport to death location
+                player.setGameMode(GameMode.SPECTATOR); // Set to spectator mode
+                plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING); // Update player state
 
-            List<Player> playingPlayers = Bukkit.getOnlinePlayers().stream()
-                    .filter(p -> plugin.getPlayerStates().get(p.getUniqueId()) == PlayerState.PLAYING)
-                    .collect(Collectors.toList());
+                List<Player> playingPlayers = Bukkit.getOnlinePlayers().stream()
+                        .filter(p -> plugin.getPlayerStates().get(p.getUniqueId()) == PlayerState.PLAYING)
+                        .collect(Collectors.toList());
 
-            if (playingPlayers.size() == 1) {
-                Player winner = playingPlayers.get(0);
-                plugin.getPlayerStates().put(winner.getUniqueId(), PlayerState.WINNER);
-                plugin.getWinnerCeremonyManager().celebrateWinner();
-            }
-        }, 1L);
+                if (playingPlayers.size() == 1) {
+                    Player winner = playingPlayers.get(0);
+                    plugin.getPlayerStates().put(winner.getUniqueId(), PlayerState.WINNER);
+                    plugin.getWinnerCeremonyManager().celebrateWinner();
+                }
+            }, 1L);
 
-        plugin.getParticleManager().spawnPlayerDeathParticles(event.getEntity().getLocation());
-        plugin.getParticleManager().spawnLightningStrikeParticles(event.getEntity().getLocation());
+            plugin.getParticleManager().spawnPlayerDeathParticles(event.getEntity().getLocation());
+            plugin.getParticleManager().spawnLightningStrikeParticles(event.getEntity().getLocation());
+            return; // If UHC is not active, do nothing
+        } else if (plugin.getState() == GameState.ENDED) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                player.spigot().respawn(); // Instantly respawn the player
+                player.teleport(deathLocation); // Teleport to death location
+                player.setGameMode(GameMode.SURVIVAL); // Set to spectator mode
+                plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING); // Update player state
 
 
+            }, 1L);
+        }
     }
+
+
+
 
     @EventHandler
     public void onZombieKill(EntityDeathEvent event) {

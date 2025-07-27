@@ -78,6 +78,7 @@ public class DropCompassBar {
                 playerBossBars.keySet().removeIf(player -> !player.isOnline());
             }
         };
+        plugin.registerTask(updater);
         updater.runTaskTimer(plugin, 0, 5);
     }
 

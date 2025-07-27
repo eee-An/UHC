@@ -46,7 +46,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private DropState dropState = DropState.WAITING; // Initial state for supply drop
     private long uhcStartTime = -1;
 
-    private final @Getter List<TopKiller> topKillers = new ArrayList<>();
+    private final List<TopKiller> topKillers = new ArrayList<>();
+    private final List<BukkitRunnable> activeTasks = new ArrayList<>();
+
 
 
     @Override
@@ -145,7 +147,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (label.equalsIgnoreCase("startuhc")) {
 //            Bukkit.broadcastMessage("evo igraci: " + String.join(", ", igraci.stream().map(Player::getName).toList()));
             state = GameState.COUNTDOWN;
-            new BukkitRunnable() {
+            BukkitRunnable updater = new BukkitRunnable() {
                 int ticks = 0;
 
                 @Override
@@ -159,7 +161,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                         //TODO: Sredi broadcast preko titla
                     }
                 }
-            }.runTaskTimer(this, 0, 1);
+            };
+            registerTask(updater);
+            updater.runTaskTimer(this, 0, 1);
         } else if (label.equalsIgnoreCase("resetstate")) {
             state = GameState.WAITING;
         } else if (label.equalsIgnoreCase("bacisupplydrop")) {
@@ -284,45 +288,44 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         for (ScheduledAction action : configValues.getScheduledActions()) {
             long delayTicks = (action.getTime().getSeconds()) * 20;
-            Bukkit.getScheduler().runTaskLater(this, () -> {
-                switch (action.getAction().toLowerCase()) {
-                    case "border": {
-//                        Bukkit.broadcastMessage("Pokretanje bordera!");
-                        borderManager.scheduleBorderMovement(
-                                (double) action.getParams().get("X"),
-                                (double) action.getParams().get("Z"),
-                                (double) action.getParams().get("size"),
-                                (int) action.getParams().get("delay") * 20,
-                                (int) action.getParams().get("duration") * 20);
-                        break;
-                    }
-                    case "supplydrop":{
-//                        Bukkit.broadcastMessage("Pada Supply Drop!");
-                        try {
-                            SupplyDrop drop = new SupplyDrop(uhcWorld,this);
-                            drop.dropAt(new Location(uhcWorld,
+            BukkitRunnable scheduledRunnable = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    switch (action.getAction().toLowerCase()) {
+                        case "border": {
+                            borderManager.scheduleBorderMovement(
                                     (double) action.getParams().get("X"),
-                                    (double) action.getParams().get("Y"),
-                                    (double) action.getParams().get("Z")));
-
-//                            Bukkit.broadcastMessage("X,Y,Z: " +
-//                                    action.getParams().get("X") + ", " +
-//                                    action.getParams().get("Y") + ", " +
-//                                    action.getParams().get("Z"));
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
+                                    (double) action.getParams().get("Z"),
+                                    (double) action.getParams().get("size"),
+                                    (int) action.getParams().get("delay") * 20,
+                                    (int) action.getParams().get("duration") * 20);
+                            break;
                         }
-                        break;
+                        case "supplydrop": {
+                            try {
+                                SupplyDrop drop = new SupplyDrop(uhcWorld, Main.this);
+                                drop.dropAt(new Location(uhcWorld,
+                                        (double) action.getParams().get("X"),
+                                        (double) action.getParams().get("Y"),
+                                        (double) action.getParams().get("Z")));
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                            break;
+                        }
                     }
-                        // Add more cases as needed
                 }
-            }, delayTicks);
+            };
+            registerTask(scheduledRunnable);
+            scheduledRunnable.runTaskLater(this, delayTicks);
         }
     }
 
     public void endUhc(){
         // Reset UHC-specific conditions:
         uhcActive = false;
+        stopAllTasks();
+        state = GameState.ENDED;
 
         // Clear scheduled border movements and reset the border
         borderManager.clearScheduledMovements();
@@ -354,5 +357,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         topKillers.sort(null);
     }
 
+    public void registerTask(BukkitRunnable task) {
+        activeTasks.add(task);
+    }
+
+    public void stopAllTasks() {
+        for (BukkitRunnable task : activeTasks) {
+            task.cancel();
+        }
+        activeTasks.clear();
+    }
 
 }

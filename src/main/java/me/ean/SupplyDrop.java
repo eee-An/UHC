@@ -91,7 +91,7 @@ public class SupplyDrop implements Listener {
             plugin.setDropState(DropState.FALLING);
 
             // Continue with the existing logic for handling falling blocks
-            new BukkitRunnable() {
+            BukkitRunnable updater = new BukkitRunnable() {
                 @Override
                 public void run() {
                     boolean nestoJePalo = false;
@@ -165,7 +165,9 @@ public class SupplyDrop implements Listener {
                         }
                     }
                 }
-            }.runTaskTimer(plugin, 0, 1);
+            };
+            plugin.registerTask(updater);
+            updater.runTaskTimer(plugin, 0, 1);
         } catch (Exception e) {
             getLogger().severe("Failed to load schematic for falling blocks: " + e.getMessage());
             e.printStackTrace();
@@ -295,12 +297,14 @@ public class SupplyDrop implements Listener {
         ticksElapsed = 0;
         if (compassBar != null) {
             compassBar.setTitle(plugin.getConfigValues().getSupplyDropOpenedMessage());
-            new BukkitRunnable() {
+            BukkitRunnable updater = new BukkitRunnable() {
                 @Override
                 public void run() {
                     compassBar.remove();
                 }
-            }.runTaskLater(plugin, SHOW_DROP_MESSAGE_TICKS);
+            };
+            plugin.registerTask(updater);
+            updater.runTaskLater(plugin, SHOW_DROP_MESSAGE_TICKS);
         }
 
     }

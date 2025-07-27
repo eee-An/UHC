@@ -31,14 +31,12 @@ public class WorldBorderManager {
 
     public void scheduleBorderMovement(double centerX, double centerZ, double size, int delay, int duration) {
         movementQueue.add(() -> {
-            currentTask = new BukkitRunnable() {
+            BukkitRunnable warningRunnable = new BukkitRunnable() {
                 int ticks = 0;
-
                 @Override
                 public void run() {
                     int[] warningTimes = plugin.getConfigValues().getBorderMovementStartWarningTimes().stream().mapToInt(i -> i).toArray();
                     long ticksLeft = (delay - ticks);
-
                     for (int warningTime : warningTimes) {
                         if (ticksLeft == (long) warningTime * 20) {
                             Bukkit.broadcastMessage(plugin.getConfigValues().getBorderMovementStartWarningMessage().replace("{seconds}", String.valueOf(warningTime)));
@@ -50,22 +48,22 @@ public class WorldBorderManager {
                     }
                     ticks++;
                 }
-            }.runTaskTimer(plugin, 0, 1);
+            };
+            currentTask = warningRunnable.runTaskTimer(plugin, 0, 1);
+            plugin.registerTask(warningRunnable);
 
             Vector start = border.getCenter().toVector();
             Vector end = new Vector(centerX, 0, centerZ);
             Vector step = end.subtract(start).multiply(1.0 / (duration + 1));
             Location currentLocation = border.getCenter();
 
-//            startBorderCenterParticles(); // Start particles when border movement begins
-            currentTask = new BukkitRunnable() {
+            BukkitRunnable moveRunnable = new BukkitRunnable() {
                 int currentTick = 0;
                 final int lastTick = delay + duration;
-
                 @Override
                 public void run() {
                     if(!plugin.isUhcActive()){
-                        stopBorderCenterParticles(); // Stop particles if UHC is not active
+                        stopBorderCenterParticles();
                         cancel();
                         return;
                     }
@@ -73,7 +71,7 @@ public class WorldBorderManager {
                         border.setCenter(centerX, centerZ);
                         border.setSize(size);
                         isResizing = false;
-                        stopBorderCenterParticles(); // Stop particles when movement ends
+                        stopBorderCenterParticles();
                         processNextMovement();
                         cancel();
                         return;
@@ -85,7 +83,9 @@ public class WorldBorderManager {
                     }
                     currentTick++;
                 }
-            }.runTaskTimer(plugin, 0, 1);
+            };
+            currentTask = moveRunnable.runTaskTimer(plugin, 0, 1);
+            plugin.registerTask(moveRunnable);
         });
 
         if (!isResizing) {
@@ -103,6 +103,7 @@ public class WorldBorderManager {
                     processNextMovement();
                 }
             }.runTaskLater(plugin, seconds * 20);
+            plugin.registerTask((BukkitRunnable) currentTask);
         });
 
         if (!isResizing) {
@@ -129,19 +130,20 @@ public class WorldBorderManager {
 
     public void startBorderCenterParticles() {
         if (particleTask != null && !particleTask.isCancelled()) {
-            return; // Prevent multiple tasks from running
+            return;
         }
-
-        particleTask = new BukkitRunnable() {
+        BukkitRunnable particleRunnable = new BukkitRunnable() {
             @Override
             public void run() {
                 World world = border.getWorld();
                 if (world != null) {
                     Location center = border.getCenter();
-                    particleManager.spawnBorderCenterParticles(world, center); // Use ParticleManager
+                    particleManager.spawnBorderCenterParticles(world, center);
                 }
             }
-        }.runTaskTimer(plugin, 0, 5); // Runs every second (20 ticks)
+        };
+        particleTask = particleRunnable.runTaskTimer(plugin, 0, 5);
+        plugin.registerTask(particleRunnable);
     }
 
     public void stopBorderCenterParticles() {
