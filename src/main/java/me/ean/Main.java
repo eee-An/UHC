@@ -27,6 +27,7 @@ import java.util.*;
 
 @Getter
 @Setter
+@SuppressWarnings("unused")
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     private static Main instance;
