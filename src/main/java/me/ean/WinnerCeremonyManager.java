@@ -1,33 +1,76 @@
 package me.ean;
 
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 public class WinnerCeremonyManager {
 
-    private final Main main;
+    private final Main plugin;
 
-    public WinnerCeremonyManager(Main main) {
-        this.main = main;
+    public WinnerCeremonyManager(Main plugin) {
+        this.plugin = plugin;
     }
 
-    public void celebrateWinner(Player winner, Location ceremonyLocation) {
-        if (winner == null || ceremonyLocation == null) return;
+    public void celebrateWinner() {
+        plugin.endUhc();
 
-        winner.teleport(ceremonyLocation);
-        World world = ceremonyLocation.getWorld();
+        Map<UUID, Player> spectators = new HashMap<>();
+        Player winner = null;
+
+        // Example: assuming PlayerState has a method isWinner()
+        for (Map.Entry<UUID, PlayerState> entry : plugin.getPlayerStates().entrySet()) {
+            Player player = plugin.getServer().getPlayer(entry.getKey());
+            if (player == null) continue;
+
+            if (entry.getValue() == PlayerState.WINNER) {
+                winner = player;
+            } else if (entry.getValue() == PlayerState.SPECTATING) {
+                spectators.put(player.getUniqueId(), player);
+            }
+        }
+
+        if (winner == null) return;
+
+        List<Location> winnerLocs = plugin.getConfigValues().getWinnerCeremonyWinnerTeleport();
+        if (winnerLocs == null || winnerLocs.isEmpty() || winnerLocs.get(0) == null) {
+            plugin.getLogger().severe("Winner teleport location is not set in the config!");
+            return;
+        }
+        Location winnerLoc = winnerLocs.get(0);
+        Location spectatorLoc = plugin.getConfigValues().getWinnerCeremonySpectatorTeleport().get(0);
+
+        if (winnerLoc == null) {
+            plugin.getLogger().severe("Winner teleport location is not set in the config!");
+            return;
+        }
+        if (spectatorLoc == null) {
+            plugin.getLogger().severe("Spectator teleport location is not set in the config!");
+            return;
+        }
+
+        winner.teleport(winnerLoc);
+        winner.setGameMode(GameMode.SURVIVAL);
+        for (Player spectator : spectators.values()) {
+            spectator.teleport(spectatorLoc);
+            spectator.setGameMode(GameMode.SURVIVAL);
+        }
+        World world = winnerLoc.getWorld();
+        world.setDifficulty(Difficulty.PEACEFUL);
         if (world == null) return;
 
         Color[] colors = {Color.YELLOW, Color.RED, Color.ORANGE};
 
+        Player finalWinner = winner;
         new BukkitRunnable() {
             int count = 0;
             @Override
@@ -40,7 +83,7 @@ public class WinnerCeremonyManager {
                     double angle = Math.toRadians(i * 60);
                     double xOffset = Math.cos(angle) * 2;
                     double zOffset = Math.sin(angle) * 2;
-                    Location fireworkLoc = winner.getLocation().clone().add(xOffset, 1, zOffset);
+                    Location fireworkLoc = finalWinner.getLocation().clone().add(xOffset, 1, zOffset);
 
                     Firework firework = (Firework) world.spawnEntity(fireworkLoc, EntityType.FIREWORK);
                     FireworkMeta meta = firework.getFireworkMeta();
@@ -54,6 +97,6 @@ public class WinnerCeremonyManager {
                     firework.setFireworkMeta(meta);
                 }
             }
-        }.runTaskTimer(main, 0L, 40L);
+        }.runTaskTimer(plugin, 0L, 40L);
     }
 }
