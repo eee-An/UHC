@@ -346,7 +346,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     public void addKill(Player player) {
         for (TopKiller tk : topKillers) {
-            if (tk.getPlayer().equals(player)) {
+            if (tk.getUuid().equals(player.getUniqueId())) {
                 tk.incrementKills();
                 topKillers.sort(null);
                 return;

@@ -69,20 +69,13 @@ public class UHCPlaceholder extends PlaceholderExpansion {
             return " §fTop Killovi:";
         } else if (params.equalsIgnoreCase("line6")) {
             var killer0 = plugin.getTopKillers().get(0);
-            return killer0 != null ? "  §#FFAA001. " + killer0.getPlayer().getName() + ": " + killer0.getKills() : ""
-            // TODO: do the same for line7 and line8
+            return killer0 != null ? "  §#FFAA001. " + killer0.getPlayerName() + ": " + killer0.getKills() : "";
         } else if (params.equalsIgnoreCase("line7")) {
-            if(plugin.getTopKillers().get(1) != null){
-                return "  §#CECACA2. " + plugin.getTopKillers().get(1).getPlayer().getName() + ": " + plugin.getTopKillers().get(1).getKills();
-            } else {
-                return "";
-            }
+            var killer1 = plugin.getTopKillers().get(1);
+            return killer1 != null ? "  §#CECACA2. " + killer1.getPlayerName() + ": " + killer1.getKills() : "";
         } else if (params.equalsIgnoreCase("line8")) {
-            if(plugin.getTopKillers().get(2) != null){
-                return "  §#B4684D3. " + plugin.getTopKillers().get(2).getPlayer().getName() + ": " + plugin.getTopKillers().get(2).getKills();
-            } else {
-                return "";
-            }
+            var killer2 = plugin.getTopKillers().get(2);
+            return killer2 != null ? "  §#B4684D3. " + killer2.getPlayerName() + ": " + killer2.getKills() : "";
         } else if (params.equalsIgnoreCase("line9")) {
             return " ";
         } else if (params.equalsIgnoreCase("line10")) {
