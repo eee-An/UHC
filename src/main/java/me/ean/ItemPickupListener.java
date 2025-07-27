@@ -44,11 +44,10 @@ public class ItemPickupListener implements Listener {
             return;
         }
 
-        if (!(event.getEntity() instanceof Player)) {
+        if (!(event.getEntity() instanceof Player player)) {
             return;
         }
 
-        Player player = (Player) event.getEntity();
         ItemStack item = event.getItem().getItemStack();
         if (item != null && bannedItems.contains(item.getType().name())) {
             if (NBTUtil.hasCustomTag(item)) {
