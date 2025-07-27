@@ -68,11 +68,9 @@ public class UHCPlaceholder extends PlaceholderExpansion {
             }
             return " §fTop Killovi:";
         } else if (params.equalsIgnoreCase("line6")) {
-            if(plugin.getTopKillers().get(0) != null){
-                return "  §#FFAA001. " + plugin.getTopKillers().get(0).getPlayer().getName() + ": " + plugin.getTopKillers().get(0).getKills();
-            } else {
-                return "";
-            }
+            var killer0 = plugin.getTopKillers().get(0);
+            return killer0 != null ? "  §#FFAA001. " + killer0.getPlayer().getName() + ": " + killer0.getKills() : ""
+            // TODO: do the same for line7 and line8
         } else if (params.equalsIgnoreCase("line7")) {
             if(plugin.getTopKillers().get(1) != null){
                 return "  §#CECACA2. " + plugin.getTopKillers().get(1).getPlayer().getName() + ": " + plugin.getTopKillers().get(1).getKills();
