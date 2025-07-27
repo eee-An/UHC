@@ -101,10 +101,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Register the player kill listener
         getServer().getPluginManager().registerEvents(new PlayerKillListener(this), this);
 
-        World world = getServer().getWorld("world");
-        if (world != null) {
-            borderManager = new WorldBorderManager(this, world.getWorldBorder());
-        }
+        borderManager = new WorldBorderManager(this, uhcWorld.getWorldBorder());
 
     }
 
@@ -340,7 +337,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         // Clear scheduled border movements and reset the border
         borderManager.clearScheduledMovements();
-        WorldBorder border = Bukkit.getWorld("world").getWorldBorder();
+        WorldBorder border = uhcWorld.getWorldBorder();
         border.setSize(75); // Set the border to the initial size (e.g., 75 blocks)
         border.setCenter(0, 0); // Set the border center to the initial position (e.g., 0, 0)
 
