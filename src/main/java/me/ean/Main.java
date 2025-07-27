@@ -179,8 +179,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             }
 //            player.sendMessage("Spawnan supply drop");
         }else if (label.equalsIgnoreCase("enduhc")) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
+            if (sender instanceof Player player) {
                 if (player.hasPermission("uhc.end")) {
                     endUhc();
                     player.sendMessage("UHC has ended and the border has been reset.");
