@@ -1,22 +1,14 @@
 package me.ean;
 
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+@SuppressWarnings("UnstableApiUsage")
 public class NBTUtil {
-    private static NamespacedKey key;
-
-    static {
-        try {
-            key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("UHC"), "SpecialItem");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    private static final NamespacedKey key = new NamespacedKey("uhc", "SpecialItem");
 
     public static boolean hasCustomTag(ItemStack item) {
         if (item == null || !item.hasItemMeta()) {
