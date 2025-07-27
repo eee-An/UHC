@@ -45,6 +45,12 @@ supply-drop-droping-speed: 0.05
 supply-drop-landing-message: "§aSupply drop je pao na: §f{x}, {y}, {z}!"
 supply-drop-opened-message: "§eSupply drop je otvoren!"
 
+# Winner ceremony
+winner-ceremony-winner-teleport:
+  - {X: 9.0, Y: 99.0, Z: 0.0, yaw: 90.0, pitch: 20.0}
+winner-ceremony-spectator-teleport:
+  - {X: 5.0, Y: 98.0, Z: 0.0, yaw: -90.0, pitch: -10.0}
+
 # Scheduled actions
 scheduled-actions:
   - time: "0:00:10"

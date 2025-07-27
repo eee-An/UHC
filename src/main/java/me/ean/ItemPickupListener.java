@@ -11,11 +11,13 @@ import java.util.List;
 
 public class ItemPickupListener implements Listener {
     private final Main plugin;
-    private final List<String> bannedItems = Main.getInstance().getConfigValues().getBannedItems();
-    private final String removalMessage = Main.getInstance().getConfigValues().getBannedItemRemovealMessage();
+    private final List<String> bannedItems;
+    private final String removalMessage;
 
     public ItemPickupListener(Main plugin) {
         this.plugin = plugin;
+        bannedItems = plugin.getConfigValues().getBannedItems();
+        removalMessage = plugin.getConfigValues().getBannedItemRemovealMessage();
     }
 
     @EventHandler

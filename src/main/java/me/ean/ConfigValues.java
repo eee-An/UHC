@@ -3,6 +3,7 @@ package me.ean;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.Duration;
@@ -31,13 +32,16 @@ public class ConfigValues {
     private String supplyDropLandingMessage;
     private String supplyDropOpenedMessage;
 
-    private YamlDocument config;
+    private List<Location> winnerCeremonyWinnerTeleport = new ArrayList<>();
+    private List<Location> winnerCeremonySpectatorTeleport = new ArrayList<>();
+
+    private YamlDocument yamlConfig;
 
     private List<ScheduledAction> scheduledActions = new ArrayList<>();
 
-    public ConfigValues(JavaPlugin plugin, YamlDocument config) {
+    public ConfigValues(Main plugin, YamlDocument config) {
         this.plugin = plugin;
-        this.config = config;
+        this.yamlConfig = config;
     }
 
     public void reloadConfig(){
@@ -45,9 +49,9 @@ public class ConfigValues {
     }
 
     public void loadConfigValues() {
-        worldName = config.getString("world-name");
+        worldName = yamlConfig.getString("world-name");
         spawnLokacije.clear();
-        List<Map<?, ?>> spawnLocations = config.getMapList("spawn-locations");
+        List<Map<?, ?>> spawnLocations = yamlConfig.getMapList("spawn-locations");
         World world = Bukkit.getWorld(worldName);
         for (Map<?, ?> loc : spawnLocations) {
             double x = ((Number) loc.get("X")).doubleValue();
@@ -55,24 +59,47 @@ public class ConfigValues {
             double z = ((Number) loc.get("Z")).doubleValue();
             spawnLokacije.add(new Location(world, x, y, z));
         }
-        goldenAppleLimit = config.getInt("golden-apple-limit");
-        goldenAppleLimitWarningMessage = config.getString("golden-apple-limit-warning-message");
+        goldenAppleLimit = yamlConfig.getInt("golden-apple-limit");
+        goldenAppleLimitWarningMessage = yamlConfig.getString("golden-apple-limit-warning-message");
 
-        borderMovements = config.getMapList("border-movements");
-        borderMovementStartMessage = config.getString("border-movement-start-message");
-        borderMovementStartWarningMessage = config.getString("border-movement-start-warning-message");
-        borderMovementStartWarningTimes = config.getIntList("border-movement-start-warning-times");
+        borderMovements = yamlConfig.getMapList("border-movements");
+        borderMovementStartMessage = yamlConfig.getString("border-movement-start-message");
+        borderMovementStartWarningMessage = yamlConfig.getString("border-movement-start-warning-message");
+        borderMovementStartWarningTimes = yamlConfig.getIntList("border-movement-start-warning-times");
 
-        bannedItemRemovealMessage = config.getString("banned-item-removal-message");
-        bannedItems = config.getStringList("banned-items");
+        bannedItemRemovealMessage = yamlConfig.getString("banned-item-removal-message");
+        bannedItems = yamlConfig.getStringList("banned-items");
 
-        supplyDropLootable = config.getString("supply-drop-loot-table");
-        supplyDropDroppingSpeed = config.getDouble("supply-drop-droping-speed");
-        supplyDropLandingMessage = config.getString("supply-drop-landing-message");
-        supplyDropOpenedMessage = config.getString("supply-drop-opened-message");
+        supplyDropLootable = yamlConfig.getString("supply-drop-loot-table");
+        supplyDropDroppingSpeed = yamlConfig.getDouble("supply-drop-droping-speed");
+        supplyDropLandingMessage = yamlConfig.getString("supply-drop-landing-message");
+        supplyDropOpenedMessage = yamlConfig.getString("supply-drop-opened-message");
+
+        List<Map<?, ?>> winnerLoc = yamlConfig.getMapList("winner-ceremony-winner-teleport");
+        for( Map<?, ?> loc : winnerLoc) {
+            double x = ((Number) loc.get("X")).doubleValue();
+            double y = ((Number) loc.get("Y")).doubleValue();
+            double z = ((Number) loc.get("Z")).doubleValue();
+            float yaw = loc.containsKey("yaw") && loc.get("yaw") instanceof Number ? ((Number) loc.get("yaw")).floatValue() : 0f;
+            float pitch = loc.containsKey("pitch") && loc.get("pitch") instanceof Number ? ((Number) loc.get("pitch")).floatValue() : 0f;
+            winnerCeremonyWinnerTeleport.add(new Location(world, x, y, z, yaw, pitch));
+        }
+
+        List<Map<?, ?>> spectatorLoc = yamlConfig.getMapList("winner-ceremony-spectator-teleport");
+        for( Map<?, ?> loc : spectatorLoc) {
+            double x = ((Number) loc.get("X")).doubleValue();
+            double y = ((Number) loc.get("Y")).doubleValue();
+            double z = ((Number) loc.get("Z")).doubleValue();
+            float yaw = loc.containsKey("yaw") ? ((Number) loc.get("yaw")).floatValue() : 0f;
+            float pitch = loc.containsKey("pitch") ? ((Number) loc.get("pitch")).floatValue() : 0f;
+            winnerCeremonySpectatorTeleport.add(new Location(world, x, y, z, yaw, pitch));
+            }
+
+        plugin.getLogger().info("winnerLoc: " + winnerCeremonyWinnerTeleport);
+        plugin.getLogger().info("spectatorLoc: " + winnerCeremonySpectatorTeleport);
 
         scheduledActions.clear();
-        List<Map<?, ?>> actions = config.getMapList("scheduled-actions");
+        List<Map<?, ?>> actions = yamlConfig.getMapList("scheduled-actions");
         for (Map<?, ?> entry : actions) {
             String timeStr = (String) entry.get("time");
             String action = (String) entry.get("action");

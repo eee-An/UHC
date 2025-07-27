@@ -22,31 +22,31 @@ import org.bukkit.scoreboard.Scoreboard;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.annotation.Native;
 import java.util.*;
 
+@Getter
+@Setter
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
-    @Getter
     private static Main instance;
     private GameState state = GameState.WAITING;
+    private Map<UUID,PlayerState> playerStates = new HashMap<>();
     private List<Player> igraci = new ArrayList<>();
     private World uhcWorld;
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
     private File configFile = new File(getDataFolder(), "config.yml");
-    private YamlDocument config;
-    @Getter
+    private YamlDocument yamlConfig;
     private boolean uhcActive = false;
     private WorldBorderManager borderManager;
-    private @Getter ConfigValues configValues;
-    private @Getter ParticleManager particleManager = new ParticleManager(this);
+    private ConfigValues configValues;
+    private ParticleManager particleManager = new ParticleManager(this);
     private WinnerCeremonyManager winnerCeremonyManager;
-    @Getter
-    static Map<Player, Integer> playerKills = new HashMap<>();
-    static List<Long> dropSeconds = new ArrayList<>();
-    static @Getter @Setter DropState dropState = DropState.WAITING; // Initial state for supply drop
-    static long uhcStartTime = -1;
+    private final List<Long> dropSeconds = new ArrayList<>();
+    private DropState dropState = DropState.WAITING; // Initial state for supply drop
+    private long uhcStartTime = -1;
 
-    public static @Getter final List<TopKiller> topKillers = new ArrayList<>();
+    private final @Getter List<TopKiller> topKillers = new ArrayList<>();
 
 
     @Override
@@ -54,19 +54,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         instance = this;
 
         new UHCPlaceholder(this).register();
+        winnerCeremonyManager = new WinnerCeremonyManager(this);
         // Copy the default config if it doesn't exist
         if (!configFile.exists()) {
             saveResource("config.yml", false);
         }
 
         try {
-            config = YamlDocument.create(configFile, getResource("config.yml"));
+            yamlConfig = YamlDocument.create(configFile, getResource("config.yml"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         // Load the config values
-        configValues = new ConfigValues(this, config);
+        configValues = new ConfigValues(this, yamlConfig);
         configValues.loadConfigValues();
 
         String worldName = configValues.getWorldName();
@@ -83,7 +84,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         Bukkit.getPluginManager().registerEvents(this, this);
 
         try {
-            config.save();
+            yamlConfig.save();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -108,6 +109,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (state == GameState.WAITING) {
             igraci.add(event.getPlayer());
+        }
+        Player player = event.getPlayer();
+        if(!playerStates.containsKey(player.getUniqueId())) {
+            playerStates.put(player.getUniqueId(),PlayerState.WAITING);
         }
     }
 
@@ -162,7 +167,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 sender.sendMessage("konzola ne moze bacati dropove");
                 return true;
             }
-            SupplyDrop drop = new SupplyDrop(uhcWorld);
+            SupplyDrop drop = new SupplyDrop(uhcWorld,this);
             try {
                 drop.dropAt(player.getLocation().clone().add(0, 10.0, 0));
             } catch (FileNotFoundException e) {
@@ -173,20 +178,20 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 if (player.hasPermission("uhc.end")) {
-                    endUHC();
+                    endUhc();
                     player.sendMessage("UHC has ended and the border has been reset.");
                 } else {
                     player.sendMessage("You do not have permission to execute this command.");
                 }
             } else {
-                endUHC();
+                endUhc();
                 sender.sendMessage("UHC has ended and the border has been reset.");
             }
             return true;
         }else if (label.equalsIgnoreCase("configreload")) {
             sender.sendMessage("§aReloading config...");
             try {
-                config.reload(); // Reload YAML from disk
+                yamlConfig.reload(); // Reload YAML from disk
                 configValues.loadConfigValues(); // Refresh config values
                 sender.sendMessage("§aConfig reloaded successfully.");
             } catch (IOException e) {
@@ -204,7 +209,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             if (winnerCeremonyManager == null) {
                 winnerCeremonyManager = new WinnerCeremonyManager(this);
             }
-            winnerCeremonyManager.celebrateWinner(player, player.getLocation());
+            winnerCeremonyManager.celebrateWinner();
         }
         return true;
     }
@@ -246,7 +251,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 p.setExp(0);
                 p.setScoreboard(srca);
 
-                playerKills.put(p, 0); // Inicijaliziraj broj ubistava za igrača
+                playerStates.put(p.getUniqueId(), PlayerState.PLAYING); // Postavi stanje igrača na PLAYING
+
+//                playerKills.put(p, 0); // Inicijaliziraj broj ubistava za igrača
 
 
                 // Dodavanje particlesa na blok na kojem igrač stoji
@@ -292,7 +299,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                     case "supplydrop":{
 //                        Bukkit.broadcastMessage("Pada Supply Drop!");
                         try {
-                            SupplyDrop drop = new SupplyDrop(uhcWorld);
+                            SupplyDrop drop = new SupplyDrop(uhcWorld,this);
                             drop.dropAt(new Location(uhcWorld,
                                     (double) action.getParams().get("X"),
                                     (double) action.getParams().get("Y"),
@@ -313,7 +320,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
-    private void endUHC(){
+    public void endUhc(){
         // Reset UHC-specific conditions:
         uhcActive = false;
 
@@ -335,7 +342,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
-    public static void addKill(Player player) {
+    public void addKill(Player player) {
         for (TopKiller tk : topKillers) {
             if (tk.getPlayer().equals(player)) {
                 tk.incrementKills();

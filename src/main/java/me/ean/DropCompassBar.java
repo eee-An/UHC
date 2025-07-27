@@ -22,8 +22,11 @@ public class DropCompassBar {
     private int openedMessageTicks = 0;
     private String openedMessage = "";
 
-    public DropCompassBar(Location dropLocation) {
+    private final Main plugin;
+
+    public DropCompassBar(Location dropLocation,Main plugin) {
         this.dropLocation = dropLocation.clone();
+        this.plugin = plugin;
         for (Player player : Bukkit.getOnlinePlayers()) {
             createBossBar(player);
         }
@@ -41,6 +44,10 @@ public class DropCompassBar {
         updater = new BukkitRunnable() {
             @Override
             public void run() {
+                if(!plugin.isUhcActive()){
+                    remove();
+                    return;
+                }
                 ticksElapsed += 5;
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     playerBossBars.computeIfAbsent(player, p -> {
@@ -50,7 +57,7 @@ public class DropCompassBar {
                     BossBar bossBar = playerBossBars.get(player);
 
                     if (ticksElapsed <= SHOW_DROP_MESSAGE_TICKS) {
-                        bossBar.setTitle(Main.getInstance().getConfigValues().getSupplyDropLandingMessage()
+                        bossBar.setTitle(plugin.getConfigValues().getSupplyDropLandingMessage()
                                 .replace("{x}", String.valueOf(dropLocation.getBlockX()))
                                 .replace("{y}", String.valueOf(dropLocation.getBlockY()))
                                 .replace("{z}", String.valueOf(dropLocation.getBlockZ())));
@@ -71,7 +78,7 @@ public class DropCompassBar {
                 playerBossBars.keySet().removeIf(player -> !player.isOnline());
             }
         };
-        updater.runTaskTimer(Main.getInstance(), 0, 5);
+        updater.runTaskTimer(plugin, 0, 5);
     }
 
     public void remove() {
@@ -96,7 +103,7 @@ public class DropCompassBar {
         if (diff < -180) diff += 360;
         int segments = 35;
         int center = segments / 2;
-        int markerPos = (int) Math.round(center + (diff / 180.0) * center);
+        int markerPos = (int) Math.round(center + (diff / 90.0) * center);
         markerPos = Math.max(0, Math.min(segments - 1, markerPos));
         StringBuilder compass = new StringBuilder();
         for (int i = 0; i < segments; i++) {

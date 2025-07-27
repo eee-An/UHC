@@ -31,7 +31,7 @@ public class UHCPlaceholder extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, String params) {
-        if(!Main.getInstance().isUhcActive()){
+        if(!plugin.isUhcActive()){
             if (params.equalsIgnoreCase("title"))
                 return "";
         }
@@ -47,41 +47,41 @@ public class UHCPlaceholder extends PlaceholderExpansion {
         else if (params.equalsIgnoreCase("line2")) {
             return " §fSupply Drop:";
         } else if (params.equalsIgnoreCase("line3")) {
-            if(Main.dropState == DropState.WAITING) {
+            if(plugin.getDropState() == DropState.WAITING) {
 
                 return "   " + getDropCountdown();
-            } else if (Main.dropState == DropState.FALLING) {
+            } else if (plugin.getDropState() == DropState.FALLING) {
                 return "   §eDrop pada!";
-            } else if (Main.dropState == DropState.LANDED) {
+            } else if (plugin.getDropState() == DropState.LANDED) {
                 return "   §aDrop je pao!";
-            } else if (Main.dropState == DropState.OPENED) {
+            } else if (plugin.getDropState() == DropState.OPENED) {
                 return "   §aDrop je otvoren!";
             }
         } else if (params.equalsIgnoreCase("line4")) {
-            if (Main.getTopKillers().isEmpty()) {
+            if (plugin.getTopKillers().isEmpty()) {
                 return "";
             }
             return " ";
         } else if (params.equalsIgnoreCase("line5")) {
-            if (Main.getTopKillers().isEmpty()) {
+            if (plugin.getTopKillers().isEmpty()) {
                 return "";
             }
             return " §fTop Killovi:";
         } else if (params.equalsIgnoreCase("line6")) {
-            if(Main.getTopKillers().get(0) != null){
-                return "  §#FFAA001. " + Main.getTopKillers().get(0).getPlayer().getName() + ": " + Main.getTopKillers().get(0).getKills();
+            if(plugin.getTopKillers().get(0) != null){
+                return "  §#FFAA001. " + plugin.getTopKillers().get(0).getPlayer().getName() + ": " + plugin.getTopKillers().get(0).getKills();
             } else {
                 return "";
             }
         } else if (params.equalsIgnoreCase("line7")) {
-            if(Main.getTopKillers().get(1) != null){
-                return "  §#CECACA2. " + Main.getTopKillers().get(1).getPlayer().getName() + ": " + Main.getTopKillers().get(1).getKills();
+            if(plugin.getTopKillers().get(1) != null){
+                return "  §#CECACA2. " + plugin.getTopKillers().get(1).getPlayer().getName() + ": " + plugin.getTopKillers().get(1).getKills();
             } else {
                 return "";
             }
         } else if (params.equalsIgnoreCase("line8")) {
-            if(Main.getTopKillers().get(2) != null){
-                return "  §#B4684D3. " + Main.getTopKillers().get(2).getPlayer().getName() + ": " + Main.getTopKillers().get(2).getKills();
+            if(plugin.getTopKillers().get(2) != null){
+                return "  §#B4684D3. " + plugin.getTopKillers().get(2).getPlayer().getName() + ": " + plugin.getTopKillers().get(2).getKills();
             } else {
                 return "";
             }
@@ -95,9 +95,9 @@ public class UHCPlaceholder extends PlaceholderExpansion {
     }
 
     private String getDropCountdown() {
-        if (Main.uhcStartTime == -1) return "Waiting...";
-        long secondsSinceStart = (System.currentTimeMillis() - Main.uhcStartTime) / 1000;
-        List<Long> dropSeconds = Main.dropSeconds; // List of drop times in seconds
+        if (plugin.getUhcStartTime() == -1) return "Waiting...";
+        long secondsSinceStart = (System.currentTimeMillis() - plugin.getUhcStartTime()) / 1000;
+        List<Long> dropSeconds = plugin.getDropSeconds(); // List of drop times in seconds
 
         for (long dropTime : dropSeconds) {
             if (dropTime > secondsSinceStart) {
@@ -120,9 +120,9 @@ public class UHCPlaceholder extends PlaceholderExpansion {
     }
 
     private long getSecondsSinceStart() {
-        if (Main.uhcStartTime == -1) return 0;
+        if (plugin.getUhcStartTime() == -1) return 0;
         long now = System.currentTimeMillis();
-        return (now - Main.uhcStartTime) / 1000;
+        return (now - plugin.getUhcStartTime()) / 1000;
     }
 
 }

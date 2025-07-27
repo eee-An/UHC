@@ -64,7 +64,7 @@ public class WorldBorderManager {
 
                 @Override
                 public void run() {
-                    if(!Main.getInstance().isUhcActive()){
+                    if(!plugin.isUhcActive()){
                         stopBorderCenterParticles(); // Stop particles if UHC is not active
                         cancel();
                         return;

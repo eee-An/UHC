@@ -38,11 +38,13 @@ public class SupplyDrop implements Listener {
     private Location dropLocation;
     private Location barrelLocation;
     private DropCompassBar compassBar;
+    private final Main plugin;
 
 
-    public SupplyDrop(World world) {
+    public SupplyDrop(World world, Main plugin) {
         this.world = world;
-        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+        this.plugin = plugin;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
 
@@ -52,7 +54,7 @@ public class SupplyDrop implements Listener {
         }
 
         // In your dropAt method, after determining baseLocation:
-        File schematicFile = new File(Main.getInstance().getDataFolder(), "balon.schem");
+        File schematicFile = new File(plugin.getDataFolder(), "balon.schem");
         if (!schematicFile.exists()) {
             getLogger().warning("Schematic file 'balon.schem' not found!");
             return;
@@ -86,7 +88,7 @@ public class SupplyDrop implements Listener {
             });
 
             spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
-            Main.getInstance().setDropState(DropState.FALLING);
+            plugin.setDropState(DropState.FALLING);
 
             // Continue with the existing logic for handling falling blocks
             new BukkitRunnable() {
@@ -95,10 +97,14 @@ public class SupplyDrop implements Listener {
                     boolean nestoJePalo = false;
                     Location baseLocation = null;
 
+                    if(!plugin.isUhcActive()){
+                        this.cancel();
+                        return;
+                    }
+
                     for (int i = 0; i < parts.size(); i++) {
                         FallingBlockWrapper wrapper = parts.get(i);
                         wrapper.ageTicks++;
-
                         boolean landed = wrapper.block.isDead() || wrapper.block.isOnGround();
 
 
@@ -120,7 +126,7 @@ public class SupplyDrop implements Listener {
                                 baseLocation.setZ(location.getZ());
                             }
                             nestoJePalo = true;
-                            Main.getInstance().setDropState(DropState.LANDED);
+                            plugin.setDropState(DropState.LANDED);
                             break;
                         }
                     }
@@ -141,9 +147,9 @@ public class SupplyDrop implements Listener {
                         pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
 
                         SupplyDrop.this.dropLocation = baseLocation;
-                        SupplyDrop.this.compassBar = new DropCompassBar(baseLocation);
+                        SupplyDrop.this.compassBar = new DropCompassBar(baseLocation, plugin);
 
-                        Main.getInstance().getParticleManager().spawnSupplyDropParticles(baseLocation);
+                        plugin.getParticleManager().spawnSupplyDropParticles(baseLocation);
 //                        Bukkit.broadcastMessage("Particles spawned at drop location: " + baseLocation);
 
                         this.cancel();
@@ -154,12 +160,12 @@ public class SupplyDrop implements Listener {
                     for (FallingBlockWrapper wrapper : parts) {
                         if (!wrapper.block.isDead() && !wrapper.block.isOnGround()) {
                             Vector vel = wrapper.block.getVelocity();
-                            vel.setY(-Main.getInstance().getConfigValues().getSupplyDropDroppingSpeed());
+                            vel.setY(-plugin.getConfigValues().getSupplyDropDroppingSpeed());
                             wrapper.block.setVelocity(vel);
                         }
                     }
                 }
-            }.runTaskTimer(Main.getInstance(), 0, 1);
+            }.runTaskTimer(plugin, 0, 1);
         } catch (Exception e) {
             getLogger().severe("Failed to load schematic for falling blocks: " + e.getMessage());
             e.printStackTrace();
@@ -168,7 +174,7 @@ public class SupplyDrop implements Listener {
 
 
     private void populateLoot(Barrel barrel) {
-        String lootTableName = Main.getInstance().getConfigValues().getSupplyDropLootable();
+        String lootTableName = plugin.getConfigValues().getSupplyDropLootable();
 
         try {
             // Set the loot table for the barrel
@@ -227,7 +233,7 @@ public class SupplyDrop implements Listener {
                         populateLoot(barrel); // Populate loot in the barrel
 //                        // Optionally, you can set the barrel's custom name or other properties here
 
-                        Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
+                        Bukkit.getPluginManager().registerEvents(this, plugin);
                         barrelLocation = barrel.getLocation();
 
 //                        // Log the coordinates of the drop
@@ -284,17 +290,17 @@ public class SupplyDrop implements Listener {
 
     public void dropOpened() {
         HandlerList.unregisterAll(this);
-        Main.getInstance().setDropState(DropState.OPENED);
+        plugin.setDropState(DropState.OPENED);
 
         ticksElapsed = 0;
         if (compassBar != null) {
-            compassBar.setTitle(Main.getInstance().getConfigValues().getSupplyDropOpenedMessage());
+            compassBar.setTitle(plugin.getConfigValues().getSupplyDropOpenedMessage());
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     compassBar.remove();
                 }
-            }.runTaskLater(Main.getInstance(), SHOW_DROP_MESSAGE_TICKS);
+            }.runTaskLater(plugin, SHOW_DROP_MESSAGE_TICKS);
         }
 
     }
