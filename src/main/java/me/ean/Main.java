@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.annotation.Native;
 import java.util.*;
+import java.util.logging.Level;
 
 @Getter
 @Setter
@@ -319,7 +320,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                                         (double) action.getParams().get("Y"),
                                         (double) action.getParams().get("Z")));
                             } catch (FileNotFoundException e) {
-                                e.printStackTrace();
+                                getLogger().log(Level.SEVERE, "Schematic file not found: " + e.getMessage(), e);
                             }
                             break;
                         }
