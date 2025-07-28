@@ -16,6 +16,6 @@ public class SpecialItemCreator {
             meta.setLore(Collections.singletonList("Special UHC Item"));
             totem.setItemMeta(meta);
         }
-        return NBTUtil.addCustomTag(totem, "SpecialItem");
+        return NBTUtil.addCustomTag(totem, "specialitem");
     }
 }

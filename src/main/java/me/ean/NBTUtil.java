@@ -25,7 +25,7 @@ public class NBTUtil {
             return null;
         }
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.set(key, PersistentDataType.STRING, value);
+        container.set(key, PersistentDataType.STRING, value.toLowerCase());
         item.setItemMeta(meta);
         return item;
     }
