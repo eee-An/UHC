@@ -205,7 +205,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }else if (label.equalsIgnoreCase("configreload")) {
             sender.sendMessage("§aReloading config...");
             try {
-                yamlConfig.reload(); // Reload YAML from disk
+                getLogger().info("yamlConfig.reload: " + yamlConfig.reload()); // Reload YAML from disk
                 configValues.loadConfigValues(); // Refresh config values
                 sender.sendMessage("§aConfig reloaded successfully.");
             } catch (IOException e) {
@@ -242,6 +242,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         uhcActive = true;
         state = GameState.PLAYING;
         uhcStartTime = System.currentTimeMillis();
+        uhcWorld.setDifficulty(Difficulty.HARD);
 
         topKillers.clear();
 
@@ -300,21 +301,28 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 public void run() {
                     switch (action.getAction().toLowerCase()) {
                         case "border": {
+                            double centerX = (double) action.getParams().get("X");
+                            double centerZ = (double) action.getParams().get("Z");
+                            double size = (double) action.getParams().get("size");
+                            int delay = (int) action.getParams().get("delay");
+                            int duration = (int) action.getParams().get("duration");
+                            getLogger().warning("Moving border: (" + centerX + ", " + centerZ + "), size: " + size + ", delay: " + delay + ", duration: " + duration);
                             borderManager.scheduleBorderMovement(
-                                    (double) action.getParams().get("X"),
-                                    (double) action.getParams().get("Z"),
-                                    (double) action.getParams().get("size"),
-                                    (int) action.getParams().get("delay") * 20,
-                                    (int) action.getParams().get("duration") * 20);
+                                    centerX,
+                                    centerZ,
+                                    size,
+                                    delay * 20,
+                                    duration * 20);
                             break;
                         }
                         case "supplydrop": {
                             try {
                                 SupplyDrop drop = new SupplyDrop(uhcWorld, Main.this);
-                                drop.dropAt(new Location(uhcWorld,
-                                        (double) action.getParams().get("X"),
-                                        (double) action.getParams().get("Y"),
-                                        (double) action.getParams().get("Z")));
+                                double x = (double) action.getParams().get("X");
+                                double y = (double) action.getParams().get("Y");
+                                double z = (double) action.getParams().get("Z");
+                                getLogger().warning("Supply drop at: (" + x + ", " + y + ", " + z + ")");
+                                drop.dropAt(new Location(uhcWorld, x, y, z));
                             } catch (FileNotFoundException e) {
                                 getLogger().log(Level.SEVERE, "Schematic file not found: " + e.getMessage(), e);
                             }
@@ -337,7 +345,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Clear scheduled border movements and reset the border
         borderManager.clearScheduledMovements();
         WorldBorder border = uhcWorld.getWorldBorder();
-        border.setSize(75); // Set the border to the initial size (e.g., 75 blocks)
+        border.setSize(10000); // Set the border to the initial size (e.g., 75 blocks)
         border.setCenter(0, 0); // Set the border center to the initial position (e.g., 0, 0)
 
         borderManager.stopBorderCenterParticles();

@@ -71,7 +71,7 @@ public class WorldBorderManager {
                         border.setCenter(centerX, centerZ);
                         border.setSize(size);
                         isResizing = false;
-                        stopBorderCenterParticles();
+//                        stopBorderCenterParticles();
                         processNextMovement();
                         cancel();
                         return;
@@ -136,6 +136,7 @@ public class WorldBorderManager {
             @Override
             public void run() {
                 World world = border.getWorld();
+//                plugin.getLogger().warning("Spawning particles at world border center: " + border.getCenter() + " in world: " + world);
                 if (world != null) {
                     Location center = border.getCenter();
                     particleManager.spawnBorderCenterParticles(world, center);
