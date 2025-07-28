@@ -8,7 +8,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 @SuppressWarnings("UnstableApiUsage")
 public class NBTUtil {
-    private static final NamespacedKey key = new NamespacedKey("uhc", "SpecialItem");
+    private static final NamespacedKey key = new NamespacedKey("uhc", "specialitem");
 
     public static boolean hasCustomTag(ItemStack item) {
         var meta = item == null ? null : item.getItemMeta();
