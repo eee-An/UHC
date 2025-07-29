@@ -97,6 +97,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         // Save the schematic file to the plugin's data folder
         saveDefaultSchematic("balon.schem");
+        saveDefaultSchematic("balon2.schem");
 
         // Register the item pickup listener
         getServer().getPluginManager().registerEvents(new ItemPickupListener(this), this);
