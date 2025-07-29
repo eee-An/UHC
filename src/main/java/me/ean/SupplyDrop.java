@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -83,9 +84,12 @@ public class SupplyDrop implements Listener {
                     FallingBlock fallingBlock = spawnLocation.getWorld().spawnFallingBlock(spawnLocation, BukkitAdapter.adapt(blockState));
                     fallingBlock.setDropItem(false);
                     fallingBlock.setGlowing(true);
-                    parts.add(new FallingBlockWrapper(fallingBlock));
+                    parts.add(new FallingBlockWrapper(fallingBlock, spawnLocation));
                 }
             });
+
+            // ADD CODE HERE
+            parts.sort(Comparator.comparingDouble(a -> a.initialLocation.getY()));
 
             spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
             plugin.setDropState(DropState.FALLING);
@@ -114,7 +118,7 @@ public class SupplyDrop implements Listener {
                             FallingBlock newBlock = loc.getWorld().spawnFallingBlock(loc, wrapper.block.getBlockData());
                             newBlock.setDropItem(false);
                             newBlock.setGlowing(true);
-                            parts.set(i, new FallingBlockWrapper(newBlock));
+                            parts.set(i, new FallingBlockWrapper(newBlock, wrapper.initialLocation));
                             wrapper.block.remove();
                             continue;
                         }
@@ -125,6 +129,7 @@ public class SupplyDrop implements Listener {
                                 baseLocation.setX(location.getX());
                                 baseLocation.setZ(location.getZ());
                             }
+                            plugin.getLogger().warning("Base location: " + baseLocation);
                             nestoJePalo = true;
                             plugin.setDropState(DropState.LANDED);
                             break;
