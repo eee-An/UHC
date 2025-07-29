@@ -15,6 +15,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.loot.LootTable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.RenderType;
@@ -297,6 +299,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 p.setLevel(0);
                 p.setExp(0);
                 p.setScoreboard(srca);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 10, false, false, false));
 
                 playerStates.put(p.getUniqueId(), PlayerState.PLAYING); // Postavi stanje igrača na PLAYING
 
