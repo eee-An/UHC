@@ -54,9 +54,9 @@ public class SupplyDrop implements Listener {
         }
 
         // In your dropAt method, after determining baseLocation:
-        File schematicFile = new File(plugin.getDataFolder(), "balon.schem");
+        File schematicFile = new File(plugin.getDataFolder(), "balon2.schem");
         if (!schematicFile.exists()) {
-            getLogger().warning("Schematic file 'balon.schem' not found!");
+            getLogger().warning("Schematic file not found!");
             return;
         }
 
