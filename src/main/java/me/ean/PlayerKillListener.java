@@ -63,7 +63,9 @@ public class PlayerKillListener implements Listener {
                     });
 
                     plugin.getPlayerStates().put(winner.getUniqueId(), PlayerState.WINNER);
-
+                    var border = plugin.getUhcWorld().getWorldBorder();
+                    border.setCenter(500, -500);
+                    border.setSize(20000);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         plugin.getWinnerCeremonyManager().celebrateWinner();
                     }, 5 * 20L);
