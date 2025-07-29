@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.loot.LootTable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
+
+import static org.bukkit.Bukkit.getLogger;
 
 @Getter
 @Setter
@@ -56,6 +59,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     @Override
     public void onEnable(){
         instance = this;
+
 
         new UHCPlaceholder(this).register();
         winnerCeremonyManager = new WinnerCeremonyManager(this);
@@ -102,6 +106,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         borderManager = new WorldBorderManager(this, uhcWorld.getWorldBorder());
 
+
+
+        // provjeri jel postoji loot table KAD SE PLUGIN UCITA, A NE TEK KADA PADNE DROP
+        LootTable lt = Bukkit.getLootTable(NamespacedKey.fromString(configValues.getSupplyDropLootable()));
+        if (lt == null) {
+            getLogger().severe("NE POSTOJI LOOT TABLE!!!!!!!!!!!" + "@".repeat(277));
+        } else {
+            getLogger().info("Loot table ucitan uspjesno:: " + lt);
+        }
     }
 
     private void registerCommands() {
