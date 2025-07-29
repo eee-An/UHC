@@ -10,9 +10,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class DropCompassBar {
-    private final Map<Player, BossBar> playerBossBars = new HashMap<>();
+    private final Map<UUID, BossBar> playerBossBars = new HashMap<>();
     private final Location dropLocation;
     private BukkitRunnable updater;
     private int ticksElapsed = 0;
@@ -37,7 +38,7 @@ public class DropCompassBar {
         BossBar bossBar = Bukkit.createBossBar("Compass", BarColor.BLUE, BarStyle.SOLID);
         bossBar.addPlayer(player);
         bossBar.setVisible(true);
-        playerBossBars.put(player, bossBar);
+        playerBossBars.put(player.getUniqueId(), bossBar);
     }
 
     private void startUpdating() {
@@ -50,11 +51,11 @@ public class DropCompassBar {
                 }
                 ticksElapsed += 5;
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    playerBossBars.computeIfAbsent(player, p -> {
-                        createBossBar(p);
-                        return playerBossBars.get(p);
+                    playerBossBars.computeIfAbsent(player.getUniqueId(), uuid -> {
+                        createBossBar(player);
+                        return playerBossBars.get(player.getUniqueId());
                     });
-                    BossBar bossBar = playerBossBars.get(player);
+                    BossBar bossBar = playerBossBars.get(player.getUniqueId());
 
                     if (ticksElapsed <= SHOW_DROP_MESSAGE_TICKS) {
                         bossBar.setTitle(plugin.getConfigValues().getSupplyDropLandingMessage()
@@ -75,7 +76,11 @@ public class DropCompassBar {
                     }
                 }
                 // Remove boss bars for players who left
-                playerBossBars.keySet().removeIf(player -> !player.isOnline());
+                playerBossBars.keySet().removeIf(uuid -> {
+                    // Bukkit.getPlayer(uuid) == null || !Bukkit.getPlayer(uuid).isOnline()
+                    Player p0 = Bukkit.getPlayer(uuid);
+                    return p0 == null || !p0.isOnline();
+                });
             }
         };
         plugin.registerTask(updater);
