@@ -85,6 +85,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         String worldName = configValues.getWorldName();
         uhcWorld = Bukkit.getWorld(worldName);
 
+        if (uhcWorld == null) {
+            getLogger().severe("@".repeat(277) + " ".repeat(33) +
+                    "NISAM PRONASAO WORLD ZA UHC: " + worldName +
+                    " ".repeat(33) + "@".repeat(277));
+        }
+
         registerCommands();
         Objects.requireNonNull(this.getCommand("testborder")).setExecutor(new WorldBorderMover(this));
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -114,7 +120,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (lt == null) {
             getLogger().severe("NE POSTOJI LOOT TABLE!!!!!!!!!!!" + "@".repeat(277));
         } else {
-            getLogger().info("Loot table ucitan uspjesno:: " + lt);
+            getLogger().warning("Loot table ucitan uspjesno:: " + lt + " (warning zato da bude druge boje)");
         }
     }
 
@@ -134,12 +140,19 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (state == GameState.WAITING) {
-            igraci.add(event.getPlayer());
+        var player = event.getPlayer();
+        var playerUUID = player.getUniqueId();
+
+        if (player.getName().equalsIgnoreCase("musava_ribica")) {
+            player.setGameMode(GameMode.SPECTATOR);
+            return;
         }
-        Player player = event.getPlayer();
-        if(!playerStates.containsKey(player.getUniqueId())) {
-            playerStates.put(player.getUniqueId(),PlayerState.WAITING);
+
+        if (state == GameState.WAITING) {
+            igraci.add(player);
+        }
+        if(!playerStates.containsKey(playerUUID)) {
+            playerStates.put(playerUUID, PlayerState.WAITING);
         }
     }
 
