@@ -48,12 +48,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private ParticleManager particleManager = new ParticleManager(this);
     private WinnerCeremonyManager winnerCeremonyManager;
     private final List<Long> dropSeconds = new ArrayList<>();
-    private DropState dropState = DropState.WAITING; // Initial state for supply drop
     private long uhcStartTime = -1;
 
     private final List<TopKiller> topKillers = new ArrayList<>();
     private final List<BukkitRunnable> activeTasks = new ArrayList<>();
 
+    private final List<SupplyDrop> drops = new ArrayList<>();
 
 
     @Override
@@ -266,10 +266,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     public void startUHC(CommandSender sender) {
         if (!provjeriJelMoguceStartat(sender))
             return;
+        drops.clear();
         uhcActive = true;
         state = GameState.PLAYING;
         uhcStartTime = System.currentTimeMillis();
         uhcWorld.setDifficulty(Difficulty.HARD);
+
+        var border = uhcWorld.getWorldBorder();
+        border.setCenter(477.5, -450.5);
+        border.setSize(4000.0);
 
         topKillers.clear();
 
@@ -350,6 +355,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                                 double z = (double) action.getParams().get("Z");
                                 getLogger().warning("Supply drop at: (" + x + ", " + y + ", " + z + ")");
                                 drop.dropAt(new Location(uhcWorld, x, y, z));
+                                drops.add(drop);
                             } catch (FileNotFoundException e) {
                                 getLogger().log(Level.SEVERE, "Schematic file not found: " + e.getMessage(), e);
                             }
@@ -367,6 +373,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Reset UHC-specific conditions:
         uhcActive = false;
         stopAllTasks();
+        drops.forEach(drop ->
+                drop.getCompassBar().remove()); // Remove all compass bars for supply drops
         state = GameState.ENDED;
 
         // Clear scheduled border movements and reset the border

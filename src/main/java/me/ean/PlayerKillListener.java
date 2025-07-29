@@ -69,6 +69,7 @@ public class PlayerKillListener implements Listener {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         plugin.getWinnerCeremonyManager().celebrateWinner();
                     }, 5 * 20L);
+
                 }
             }, 1L);
 

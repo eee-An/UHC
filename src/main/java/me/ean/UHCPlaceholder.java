@@ -35,27 +35,46 @@ public class UHCPlaceholder extends PlaceholderExpansion {
             if (params.equalsIgnoreCase("title"))
                 return "";
         }
-        else if(params.equalsIgnoreCase("title")){
-            return "%animation:logo%";
-        }
-        else if (params.equalsIgnoreCase("line0")) {
-            return "%animation:pruga%";
-        }
-        else if (params.equalsIgnoreCase("line1")) {
+        else if (params.equalsIgnoreCase("line1") || params.equalsIgnoreCase("razmak")) {
             return " ";
+        }
+        else if (params.equalsIgnoreCase("stoperica")) {
+            long totalSeconds = getSecondsSinceStart();
+            int totalMinutes = (int) (totalSeconds / 60);
+            int seconds = (int) (totalSeconds % 60);
+            int totalHours = totalMinutes / 60;
+            int minutes = totalMinutes % 60;
+
+            return " " + String.format("§fVreme: §a%d:%02d:%02d", totalHours, minutes, seconds);
         }
         else if (params.equalsIgnoreCase("line2")) {
             return " §fSupply Drop:";
         } else if (params.equalsIgnoreCase("line3")) {
-            if(plugin.getDropState() == DropState.WAITING) {
-
+            if (plugin.getDrops().isEmpty()) {
                 return "   " + getDropCountdown();
-            } else if (plugin.getDropState() == DropState.FALLING) {
-                return "   §eDrop pada!";
-            } else if (plugin.getDropState() == DropState.LANDED) {
-                return "   §aDrop je pao!";
-            } else if (plugin.getDropState() == DropState.OPENED) {
-                return "   §aDrop je otvoren!";
+            }
+            SupplyDrop lastDrop = plugin.getDrops().get(plugin.getDrops().size()-1);
+            switch (lastDrop.getDropState()) {
+                case WAITING:
+                    return "   " + getDropCountdown();
+                case FALLING:
+                    return "   §eDrop pada!";
+                case LANDED:
+                    return "   §aDrop je pao!";
+                case OPENED:
+                    return "   §aDrop je otvoren!";
+                case REMOVED:
+                    int ukupnoDropova = 0;
+                    for (var SA : plugin.getConfigValues().getScheduledActions()) {
+                        if (SA.getAction().equalsIgnoreCase("supplydrop")) {
+                            ukupnoDropova++;
+                        }
+                    }
+                    if (plugin.getDrops().size() == ukupnoDropova) {
+                        return "   §aSvi dropovi su pali!";
+                    }
+                    return "   " + getDropCountdown();
+
             }
         } else if (params.equalsIgnoreCase("line4")) {
             if (plugin.getTopKillers().isEmpty()) {
@@ -87,7 +106,7 @@ public class UHCPlaceholder extends PlaceholderExpansion {
 
     private String getDropCountdown() {
         if (plugin.getUhcStartTime() == -1) return "Waiting...";
-        long secondsSinceStart = (System.currentTimeMillis() - plugin.getUhcStartTime()) / 1000;
+        long secondsSinceStart = getSecondsSinceStart();
         List<Long> dropSeconds = plugin.getDropSeconds(); // List of drop times in seconds
 
         for (long dropTime : dropSeconds) {
@@ -96,7 +115,7 @@ public class UHCPlaceholder extends PlaceholderExpansion {
                 return formatTime(secondsLeft);
             }
         }
-        return "No more drops";
+        return "Nema više dropova!";
     }
 
     private int getKillsForPlayer(Player player) {

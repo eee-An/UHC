@@ -4,5 +4,6 @@ public enum DropState {
     WAITING,
     FALLING,
     LANDED,
-    OPENED;
+    OPENED,
+    REMOVED;
 }

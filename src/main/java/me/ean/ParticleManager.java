@@ -22,7 +22,7 @@ public class ParticleManager {
             world.spawnParticle(Particle.END_ROD, center.getX(), center.getY(), center.getZ(), 10, 0.1, 0.1, 0.1, 0.01, null, true);
 
             // Log the coordinates to the console
-            Bukkit.getLogger().info("Particles spawned at: X=" + center.getX() + ", Y=" + center.getY() + ", Z=" + center.getZ());
+//            Bukkit.getLogger().info("Particles spawned at: X=" + center.getX() + ", Y=" + center.getY() + ", Z=" + center.getZ());
         }
     }
 

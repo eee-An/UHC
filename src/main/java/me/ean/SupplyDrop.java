@@ -1,6 +1,7 @@
 package me.ean;
 
 import com.sk89q.worldedit.world.block.BlockState;
+import lombok.Getter;
 import org.bukkit.*;
 import org.bukkit.block.Barrel;
 import org.bukkit.entity.FallingBlock;
@@ -38,9 +39,9 @@ public class SupplyDrop implements Listener {
     private final World world;
     private Location dropLocation;
     private Location barrelLocation;
-    private DropCompassBar compassBar;
+    private @Getter DropCompassBar compassBar;
     private final Main plugin;
-
+    private @Getter DropState dropState = DropState.WAITING;
 
     public SupplyDrop(World world, Main plugin) {
         this.world = world;
@@ -73,10 +74,14 @@ public class SupplyDrop implements Listener {
             try (ClipboardReader reader = format.getReader(fis)) {
                 clipboard = reader.read();
             }
+
+            plugin.getLogger().warning("Clipboard origin: " + clipboard.getOrigin());
+//            clipboard.setOrigin(BlockVector3.ZERO);
             BlockVector3 centerOffset = findCenterOffset(clipboard);
 
             // Calculate spawn base so barrel lands at target location
             Location spawnBase = location.clone().subtract(centerOffset.x(), centerOffset.y(), centerOffset.z());
+            plugin.getLogger().warning("Spawn base: " + spawnBase);
             // Use iterateSchematicBlocksWithoutGetters to process blocks
             iterateSchematicBlocksWithoutGetters(clipboard, spawnBase, (blockVector, spawnLocation) -> {
                 BlockState blockState = clipboard.getBlock(blockVector);
@@ -92,7 +97,7 @@ public class SupplyDrop implements Listener {
             parts.sort(Comparator.comparingDouble(a -> a.initialLocation.getY()));
 
             spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
-            plugin.setDropState(DropState.FALLING);
+            dropState = DropState.FALLING;
 
             // Continue with the existing logic for handling falling blocks
             BukkitRunnable updater = new BukkitRunnable() {
@@ -131,7 +136,7 @@ public class SupplyDrop implements Listener {
                             }
                             plugin.getLogger().warning("Base location: " + baseLocation);
                             nestoJePalo = true;
-                            plugin.setDropState(DropState.LANDED);
+                            dropState = DropState.LANDED;
                             break;
                         }
                     }
@@ -149,6 +154,7 @@ public class SupplyDrop implements Listener {
                         parts.clear();
 
                         BlockVector3 pasteLocation = BlockVector3.at(spawnBase.getBlockX(), baseLocation.getBlockY(), spawnBase.getBlockZ());
+                        getLogger().warning("Paste location: " + pasteLocation);
                         pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
 
                         SupplyDrop.this.dropLocation = baseLocation;
@@ -292,12 +298,20 @@ public class SupplyDrop implements Listener {
         }
     }
 
-    private static final int SHOW_DROP_MESSAGE_TICKS = 140; // 7 seconds (20 ticks per second)
+    @EventHandler
+    public void onBreak(org.bukkit.event.block.BlockBreakEvent event) {
+        if (event.getBlock().getType() == org.bukkit.Material.BARREL && event.getBlock().getLocation().equals(barrelLocation)) {
+//             If the barrel is broken, we can consider the drop as opened
+            if (compassBar != null)  dropOpened();
+        }
+    }
+
+    private static final int SHOW_DROP_MESSAGE_TICKS = 5; // 7 seconds (20 ticks per second)
     private int ticksElapsed = 0;
 
     public void dropOpened() {
         HandlerList.unregisterAll(this);
-        plugin.setDropState(DropState.OPENED);
+        dropState = DropState.OPENED;
 
         ticksElapsed = 0;
         if (compassBar != null) {
@@ -310,6 +324,10 @@ public class SupplyDrop implements Listener {
             };
             plugin.registerTask(updater);
             updater.runTaskLater(plugin, SHOW_DROP_MESSAGE_TICKS);
+
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                dropState = DropState.REMOVED;
+            }, 200L);
         }
 
     }
