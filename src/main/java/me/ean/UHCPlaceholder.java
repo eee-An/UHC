@@ -71,7 +71,7 @@ public class UHCPlaceholder extends PlaceholderExpansion {
                         }
                     }
                     if (plugin.getDrops().size() == ukupnoDropova) {
-                        return "   §aSvi dropovi su pali!";
+                        return "   §aSvi su pali!";
                     }
                     return "   " + getDropCountdown();
 

@@ -346,6 +346,7 @@ public class SupplyDrop implements Listener {
         }
 
         // Place the beacon
+        plugin.getLogger().warning("Spawning beacon at: " + beaconLoc);
         beaconLoc.getBlock().setType(Material.BEACON);
         // Make sure nothing is above the beacon except air or glass
     }

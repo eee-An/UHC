@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Player;
@@ -376,8 +377,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Reset UHC-specific conditions:
         uhcActive = false;
         stopAllTasks();
-        drops.forEach(drop ->
-                drop.getCompassBar().remove()); // Remove all compass bars for supply drops
+        drops.forEach(drop -> {
+            var bar = drop.getCompassBar();
+            if (bar != null) {
+                bar.remove();
+            }
+        }); // Remove all compass bars for supply drops
         state = GameState.ENDED;
 
         // Clear scheduled border movements and reset the border
