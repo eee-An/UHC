@@ -89,6 +89,7 @@
         <version>3.1.0</version>
         <configuration>
           <finalName>${project.name}</finalName>
+          <outputDirectory>C:\MinecraftServer26.2\plugins</outputDirectory>
         </configuration>
       </plugin>
     </plugins>

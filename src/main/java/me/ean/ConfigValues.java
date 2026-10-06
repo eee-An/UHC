@@ -28,6 +28,7 @@ public class ConfigValues {
     private List<String> bannedItems;
 
     private String supplyDropLootable;
+    private String supplyDropSchematic;
     private double supplyDropDroppingSpeed;
     private String supplyDropLandingMessage;
     private String supplyDropOpenedMessage;
@@ -71,6 +72,10 @@ public class ConfigValues {
         bannedItems = yamlConfig.getStringList("banned-items");
 
         supplyDropLootable = yamlConfig.getString("supply-drop-loot-table");
+        String configuredSchematic = yamlConfig.getString("supply-drop-schematic");
+        supplyDropSchematic = configuredSchematic == null || configuredSchematic.isBlank()
+                ? "balon2.schem"
+                : configuredSchematic;
         supplyDropDroppingSpeed = yamlConfig.getDouble("supply-drop-droping-speed");
         supplyDropLandingMessage = yamlConfig.getString("supply-drop-landing-message");
         supplyDropOpenedMessage = yamlConfig.getString("supply-drop-opened-message");

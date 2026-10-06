@@ -170,7 +170,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <finalName>${project.name}</finalName>
-                    <outputDirectory>C:\MinecraftServer1.20.4\plugins</outputDirectory>
+                    <outputDirectory>C:\MinecraftServer26.2\plugins</outputDirectory>
                     <!--outputDirectory>C:\Paperserver\plugins</outputDirectory-->
                 </configuration>
             </plugin>

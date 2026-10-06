@@ -59,7 +59,7 @@ public class PlayerKillListener implements Listener {
 
                     // posalji svima title: ime winnera
                     Bukkit.getOnlinePlayers().forEach(p -> {
-                        p.sendTitle(winner.getName(), "je osvojio Floxy UHC Sezona 5", 5, 1000, 5);
+                        p.sendTitle(winner.getName(), "je osvojio Floxy UHC Sezona 6", 5, 1000, 5);
                     });
 
                     plugin.getPlayerStates().put(winner.getUniqueId(), PlayerState.WINNER);

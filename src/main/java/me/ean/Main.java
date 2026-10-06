@@ -270,6 +270,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (!provjeriJelMoguceStartat(sender))
             return;
         drops.clear();
+        dropSeconds.clear();
         uhcActive = true;
         state = GameState.PLAYING;
         uhcStartTime = System.currentTimeMillis();
@@ -330,46 +331,64 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             }
         }
 
-        for (ScheduledAction action : configValues.getScheduledActions()) {
-            long delayTicks = (action.getTime().getSeconds()) * 20;
-            BukkitRunnable scheduledRunnable = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    switch (action.getAction().toLowerCase()) {
-                        case "border": {
-                            double centerX = (double) action.getParams().get("X");
-                            double centerZ = (double) action.getParams().get("Z");
-                            double size = (double) action.getParams().get("size");
-                            int delay = (int) action.getParams().get("delay");
-                            int duration = (int) action.getParams().get("duration");
-                            getLogger().warning("Moving border: (" + centerX + ", " + centerZ + "), size: " + size + ", delay: " + delay + ", duration: " + duration);
-                            borderManager.scheduleBorderMovement(
-                                    centerX,
-                                    centerZ,
-                                    size,
-                                    delay * 20,
-                                    duration * 20);
-                            break;
-                        }
-                        case "supplydrop": {
-                            try {
-                                SupplyDrop drop = new SupplyDrop(uhcWorld, Main.this);
-                                double x = (double) action.getParams().get("X");
-                                double y = (double) action.getParams().get("Y");
-                                double z = (double) action.getParams().get("Z");
-                                getLogger().warning("Supply drop at: (" + x + ", " + y + ", " + z + ")");
-                                drop.dropAt(new Location(uhcWorld, x, y, z));
-                                drops.add(drop);
-                            } catch (FileNotFoundException e) {
-                                getLogger().log(Level.SEVERE, "Schematic file not found: " + e.getMessage(), e);
-                            }
-                            break;
-                        }
-                    }
+        List<ScheduledAction> scheduledActions = new ArrayList<>(configValues.getScheduledActions());
+        scheduledActions.sort(Comparator.comparing(ScheduledAction::getTime));
+        BukkitRunnable scheduledActionsRunner = new BukkitRunnable() {
+            private int nextAction = 0;
+
+            @Override
+            public void run() {
+                long elapsedMillis = System.currentTimeMillis() - uhcStartTime;
+
+                while (nextAction < scheduledActions.size()
+                        && elapsedMillis >= scheduledActions.get(nextAction).getTime().toMillis()) {
+                    executeScheduledAction(scheduledActions.get(nextAction));
+                    nextAction++;
                 }
-            };
-            registerTask(scheduledRunnable);
-            scheduledRunnable.runTaskLater(this, delayTicks);
+
+                if (nextAction >= scheduledActions.size()) {
+                    cancel();
+                }
+            }
+        };
+        registerTask(scheduledActionsRunner);
+        scheduledActionsRunner.runTaskTimer(this, 0L, 1L);
+    }
+
+    private void executeScheduledAction(ScheduledAction action) {
+        switch (action.getAction().toLowerCase()) {
+            case "border": {
+                double centerX = ((Number) action.getParams().get("X")).doubleValue();
+                double centerZ = ((Number) action.getParams().get("Z")).doubleValue();
+                double size = ((Number) action.getParams().get("size")).doubleValue();
+                int delay = ((Number) action.getParams().get("delay")).intValue();
+                int duration = ((Number) action.getParams().get("duration")).intValue();
+                getLogger().warning("Moving border: (" + centerX + ", " + centerZ + "), size: " + size
+                        + ", delay: " + delay + ", duration: " + duration);
+                borderManager.scheduleBorderMovement(
+                        centerX,
+                        centerZ,
+                        size,
+                        delay * 20,
+                        duration * 20);
+                break;
+            }
+            case "supplydrop": {
+                try {
+                    SupplyDrop drop = new SupplyDrop(uhcWorld, this);
+                    double x = ((Number) action.getParams().get("X")).doubleValue();
+                    double y = ((Number) action.getParams().get("Y")).doubleValue();
+                    double z = ((Number) action.getParams().get("Z")).doubleValue();
+                    getLogger().warning("Supply drop at: (" + x + ", " + y + ", " + z + ")");
+                    drop.dropAt(new Location(uhcWorld, x, y, z));
+                    drops.add(drop);
+                } catch (FileNotFoundException e) {
+                    getLogger().log(Level.SEVERE, "Schematic file not found: " + e.getMessage(), e);
+                }
+                break;
+            }
+            default:
+                getLogger().warning("Unknown scheduled action: " + action.getAction());
         }
     }
 

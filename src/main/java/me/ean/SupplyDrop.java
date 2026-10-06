@@ -56,7 +56,7 @@ public class SupplyDrop implements Listener {
         }
 
         // In your dropAt method, after determining baseLocation:
-        File schematicFile = new File(plugin.getDataFolder(), "balon2.schem");
+        File schematicFile = new File(plugin.getDataFolder(), plugin.getConfigValues().getSupplyDropSchematic());
         if (!schematicFile.exists()) {
             getLogger().warning("Schematic file not found!");
             return;
@@ -306,7 +306,7 @@ public class SupplyDrop implements Listener {
         }
     }
 
-    private static final int SHOW_DROP_MESSAGE_TICKS = 5; // 7 seconds (20 ticks per second)
+    private static final int SHOW_DROP_MESSAGE_TICKS = 140; // 7 seconds (20 ticks per second)
     private int ticksElapsed = 0;
 
     public void dropOpened() {
