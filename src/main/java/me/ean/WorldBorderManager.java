@@ -35,6 +35,10 @@ public class WorldBorderManager {
                 int ticks = 0;
                 @Override
                 public void run() {
+                    if (!plugin.getConfigValues().isBorderWarningsEnabled()) {
+                        cancel();
+                        return;
+                    }
                     int[] warningTimes = plugin.getConfigValues().getBorderMovementStartWarningTimes().stream().mapToInt(i -> i).toArray();
                     long ticksLeft = (delay - ticks);
                     for (int warningTime : warningTimes) {

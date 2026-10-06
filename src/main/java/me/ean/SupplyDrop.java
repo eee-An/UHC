@@ -88,7 +88,7 @@ public class SupplyDrop implements Listener {
                 if (!blockState.getBlockType().getMaterial().isAir()) {
                     FallingBlock fallingBlock = spawnLocation.getWorld().spawnFallingBlock(spawnLocation, BukkitAdapter.adapt(blockState));
                     fallingBlock.setDropItem(false);
-                    fallingBlock.setGlowing(true);
+                    fallingBlock.setGlowing(plugin.getConfigValues().isSupplyDropGlowing());
                     parts.add(new FallingBlockWrapper(fallingBlock, spawnLocation));
                 }
             });
@@ -96,7 +96,9 @@ public class SupplyDrop implements Listener {
             // ADD CODE HERE
             parts.sort(Comparator.comparingDouble(a -> a.initialLocation.getY()));
 
-            spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
+            if (plugin.getConfigValues().isSupplyDropBeaconEnabled()) {
+                spawnBeaconWithBeam(world, location.getBlockX(), location.getBlockZ());
+            }
             dropState = DropState.FALLING;
 
             // Continue with the existing logic for handling falling blocks
@@ -122,7 +124,7 @@ public class SupplyDrop implements Listener {
                             Location loc = wrapper.block.getLocation();
                             FallingBlock newBlock = loc.getWorld().spawnFallingBlock(loc, wrapper.block.getBlockData());
                             newBlock.setDropItem(false);
-                            newBlock.setGlowing(true);
+                            newBlock.setGlowing(plugin.getConfigValues().isSupplyDropGlowing());
                             parts.set(i, new FallingBlockWrapper(newBlock, wrapper.initialLocation));
                             wrapper.block.remove();
                             continue;
@@ -158,7 +160,9 @@ public class SupplyDrop implements Listener {
                         pasteSchematic(schematicFile, baseLocation.getWorld(), pasteLocation);
 
                         SupplyDrop.this.dropLocation = baseLocation;
-                        SupplyDrop.this.compassBar = new DropCompassBar(baseLocation, plugin);
+                                    if (plugin.getConfigValues().isSupplyDropCompassBarEnabled()) {
+                                        SupplyDrop.this.compassBar = new DropCompassBar(baseLocation, plugin);
+                                    }
 
                         plugin.getParticleManager().spawnSupplyDropParticles(baseLocation);
 //                        Bukkit.broadcastMessage("Particles spawned at drop location: " + baseLocation);

@@ -65,21 +65,24 @@ public class WinnerCeremonyManager {
             spectator.setGameMode(GameMode.SURVIVAL);
         }
         World world = winnerLoc.getWorld();
-        world.setDifficulty(Difficulty.PEACEFUL);
         if (world == null) return;
+        world.setDifficulty(Difficulty.PEACEFUL);
 
-        Color[] colors = {Color.YELLOW, Color.RED, Color.ORANGE};
+        if (!plugin.getConfigValues().isWinnerFireworksEnabled()) {
+            return;
+        }
+        List<Color> colors = plugin.getConfigValues().getWinnerFireworkColors();
 
         Player finalWinner = winner;
         BukkitRunnable updater = new BukkitRunnable() {
             int count = 0;
             @Override
             public void run() {
-                if (count++ >= 10) {
+                if (count++ >= plugin.getConfigValues().getWinnerFireworksWaves()) {
                     this.cancel();
                     return;
                 }
-                for (int i = 0; i < 6; i++) {
+                for (int i = 0; i < plugin.getConfigValues().getWinnerFireworksPerWave(); i++) {
                     double angle = Math.toRadians(i * 60);
                     double xOffset = Math.cos(angle) * 2;
                     double zOffset = Math.sin(angle) * 2;
@@ -88,17 +91,17 @@ public class WinnerCeremonyManager {
                     Firework firework = (Firework) world.spawnEntity(fireworkLoc, EntityType.FIREWORK);
                     FireworkMeta meta = firework.getFireworkMeta();
                     meta.addEffect(FireworkEffect.builder()
-                            .withColor(colors[i % 3])
+                            .withColor(colors.get(i % colors.size()))
                             .with(Type.BURST)
                             .trail(true)
                             .flicker(true)
                             .build());
-                    meta.setPower(0);
+                    meta.setPower(plugin.getConfigValues().getWinnerFireworkPower());
                     firework.setFireworkMeta(meta);
                 }
             }
         };
         plugin.registerTask(updater);
-        updater.runTaskTimer(plugin, 0L, 40L);
+        updater.runTaskTimer(plugin, 0L, plugin.getConfigValues().getWinnerFireworksIntervalTicks());
     }
 }

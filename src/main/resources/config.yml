@@ -1,21 +1,49 @@
 ## src/main/resources/config.yml
 world-name: world
+game:
+  difficulty: HARD
+  initial-border:
+    center-x: 477.5
+    center-z: -450.5
+    size: 4000.0
+
+start-settings:
+  clear-inventory: true
+  clear-ender-chest: true
+  health: 20.0
+  food-level: 20
+  level: 0
+  experience: 0.0
+  spawn-slowness:
+    enabled: true
+    duration: 10
+    amplifier: 10
+
+messages:
+  config-reloaded: "§aConfig je uspješno učitan."
+  uhc-started: "§aUHC je počeo!"
+  uhc-ended: "§cUHC je završen."
+  not-enough-spawns: "§cNema dovoljno spawn lokacija za sve igrače."
+  loot-table-missing: "§cSupply drop loot table ne postoji."
+
 spawn-locations:
-  - {X: 0.5, Y: 98, Z: 0.5}
-  - {X: 1.5, Y: 98, Z: 1.5}
-  - {X: -1.5, Y: 98, Z: -1.5}
-  - {X: 2.5, Y: 98, Z: 2.5}
-  - {X: -2.5, Y: 98, Z: -2.5}
+  - {X: 0.5, Y: 98, Z: 0.5, yaw: 0.0, pitch: 0.0}
+  - {X: 1.5, Y: 98, Z: 1.5, yaw: 0.0, pitch: 0.0}
+  - {X: -1.5, Y: 98, Z: -1.5, yaw: 0.0, pitch: 0.0}
+  - {X: 2.5, Y: 98, Z: 2.5, yaw: 0.0, pitch: 0.0}
+  - {X: -2.5, Y: 98, Z: -2.5, yaw: 0.0, pitch: 0.0}
 
 ## Gapple limit
 golden-apple-limit: 3
 golden-apple-limit-warning-message: "Dosao si do limita zlatnih jabuka!"
-
+golden-apple-limit-reached-message: "Dostigao si limit zlatnih jabuka!"
 border-movement-start-message: "Border se pokrenuo!"
 border-movement-start-warning-message: "Border ce se pokrenuti za {seconds} sekundi!"
-border-movement-start-warning-times: [30, 10, 3, 2, 1]
+border-warnings:
+  enabled: true
+  times: [30, 10, 3, 2, 1]
 
-banned-item-removal-message: "You picked up a banned item (%s) and it has been removed."
+banned-item-removal-message: "Pokupio si nedozvoljeni item (%s) pa smo ti ga maznli <3"
 banned-items:
   - DIAMOND_SWORD
   - NETHERITE_AXE
@@ -27,12 +55,24 @@ supply-drop-schematic: balon2.schem
 supply-drop-droping-speed: 0.05
 supply-drop-landing-message: "§aSupply drop je pao na: §f{x}, {y}, {z}!"
 supply-drop-opened-message: "§eSupply drop je otvoren!"
+supply-drop:
+  glowing: true
+  compass-bar-enabled: true
+  beacon-enabled: true
 
 # Winner ceremony
 winner-ceremony-winner-teleport:
   - {X: 9.0, Y: 99.0, Z: 0.0, yaw: 90.0, pitch: 20.0}
 winner-ceremony-spectator-teleport:
   - {X: 5.0, Y: 98.0, Z: 0.0, yaw: -90.0, pitch: -10.0}
+
+winner-ceremony:
+  fireworks:
+    enabled: true
+    waves: 10
+    fireworks-per-wave: 6
+    interval-ticks: 40
+    power: 0
 
 # Scheduled actions
 scheduled-actions:

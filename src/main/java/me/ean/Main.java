@@ -121,9 +121,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // provjeri jel postoji loot table KAD SE PLUGIN UCITA, A NE TEK KADA PADNE DROP
         LootTable lt = Bukkit.getLootTable(NamespacedKey.fromString(configValues.getSupplyDropLootable()));
         if (lt == null) {
-            getLogger().severe("NE POSTOJI LOOT TABLE!!!!!!!!!!!" + "@".repeat(277));
+            getLogger().severe(configValues.getLootTableMissingMessage());
         } else {
-            getLogger().warning("Loot table ucitan uspjesno:: " + lt + " (warning zato da bude druge boje)");
+            getLogger().info("Loot table ucitan uspjesno: " + lt);
         }
     }
 
@@ -237,7 +237,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             try {
                 getLogger().info("yamlConfig.reload: " + yamlConfig.reload()); // Reload YAML from disk
                 configValues.loadConfigValues(); // Refresh config values
-                sender.sendMessage("§aConfig reloaded successfully.");
+                sender.sendMessage(configValues.getConfigReloadedMessage());
             } catch (IOException e) {
                 sender.sendMessage("§cFailed to reload config: " + e.getMessage());
             }
@@ -260,7 +260,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     public boolean provjeriJelMoguceStartat(CommandSender sender) {
         if (igraci.size() > configValues.getSpawnLokacije().size()) {
-            sender.sendMessage("ima vise igraca nego spawn lokacija!!");
+            sender.sendMessage(configValues.getNotEnoughSpawnsMessage());
             return false;
         }
         return true;
@@ -274,11 +274,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         uhcActive = true;
         state = GameState.PLAYING;
         uhcStartTime = System.currentTimeMillis();
-        uhcWorld.setDifficulty(Difficulty.HARD);
+        uhcWorld.setDifficulty(configValues.getGameDifficulty());
 
         var border = uhcWorld.getWorldBorder();
-        border.setCenter(477.5, -450.5);
-        border.setSize(4000.0);
+        border.setCenter(configValues.getInitialBorderCenterX(), configValues.getInitialBorderCenterZ());
+        border.setSize(configValues.getInitialBorderSize());
+        Bukkit.broadcastMessage(configValues.getUhcStartedMessage());
 
         topKillers.clear();
 
@@ -289,19 +290,28 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         // TODO: teleportiraj igrace, odradi sve sto treba za pocetak igre  (npr. border, supply drops, ...)
         igraci.forEach(p -> {
-            p.getInventory().clear();
-            p.getEnderChest().clear();
+            if (configValues.isClearInventoryOnStart()) {
+                p.getInventory().clear();
+            }
+            if (configValues.isClearEnderChestOnStart()) {
+                p.getEnderChest().clear();
+            }
             //  p.teleport(spawnLokacije.remove(0));  // ignoriraj "player moved too fast!" u konzoli
             getServer().getScheduler().runTaskLater(this, () -> {
                 Location spawnLocation = configValues.getSpawnLokacije().remove(0);
                 p.teleport(spawnLocation);
                 p.setGameMode(GameMode.SURVIVAL);
-                p.setHealth(20);
-                p.setFoodLevel(20);
-                p.setLevel(0);
-                p.setExp(0);
+                p.setHealth(Math.min(configValues.getStartHealth(), p.getMaxHealth()));
+                p.setFoodLevel(configValues.getStartFoodLevel());
+                p.setLevel(configValues.getStartLevel());
+                p.setExp(configValues.getStartExperience());
                 p.setScoreboard(srca);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 10, 10, false, false, false));
+                if (configValues.isSpawnSlownessEnabled()) {
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
+                            configValues.getSpawnSlownessDuration(),
+                            configValues.getSpawnSlownessAmplifier(),
+                            false, false, false));
+                }
 
                 playerStates.put(p.getUniqueId(), PlayerState.PLAYING); // Postavi stanje igrača na PLAYING
 
@@ -407,10 +417,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // Clear scheduled border movements and reset the border
         borderManager.clearScheduledMovements();
         WorldBorder border = uhcWorld.getWorldBorder();
-        border.setSize(10000); // Set the border to the initial size (e.g., 75 blocks)
-        border.setCenter(0, 0); // Set the border center to the initial position (e.g., 0, 0)
+        border.setSize(configValues.getInitialBorderSize());
+        border.setCenter(configValues.getInitialBorderCenterX(), configValues.getInitialBorderCenterZ());
 
         borderManager.stopBorderCenterParticles();
+        Bukkit.broadcastMessage(configValues.getUhcEndedMessage());
     }
 
 
