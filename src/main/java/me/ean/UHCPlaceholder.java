@@ -97,8 +97,6 @@ public class UHCPlaceholder extends PlaceholderExpansion {
             return killer2 != null ? "  §#B4684D3. " + killer2.getPlayerName() + ": " + killer2.getKills() : "";
         } else if (params.equalsIgnoreCase("line9")) {
             return " ";
-        } else if (params.equalsIgnoreCase("line10")) {
-            return "%animation:pruga%";
         }
 
         return "";

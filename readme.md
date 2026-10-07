@@ -38,22 +38,37 @@ Plugin registrira expansion `uhc`. Placeholderi se koriste u scoreboardu ili
 drugim PlaceholderAPI podržanim pluginima u ovom formatu:
 
 ```text
-%uhc_line1%
-%uhc_razmak%
-%uhc_stoperica%
-%uhc_line2%
-%uhc_line3%
-%uhc_line4%
-%uhc_line5%
-%uhc_line6%
-%uhc_line7%
-%uhc_line8%
-%uhc_line9%
+%uhc_line1%       # prazan redak
+%uhc_razmak%      # prazan redak, isto što i line1
+%uhc_stoperica%   # vrijeme proteklo od početka UHC-a
+%uhc_line2%       # naslov sekcije za supply drop
+%uhc_line3%       # odbrojavanje ili trenutno stanje supply dropa
+%uhc_line4%       # prazan redak prije Top Killovi sekcije
+%uhc_line5%       # naslov sekcije za Top 3 killera
+%uhc_line6%       # prvi igrač na kill tablici
+%uhc_line7%       # drugi igrač na kill tablici
+%uhc_line8%       # treći igrač na kill tablici
+%uhc_line9%       # prazan redak nakon Top 3 killova
 ```
 
-`%uhc_stoperica%` prikazuje vrijeme partije, a `%uhc_line3%` prikazuje stanje
-sljedećeg ili aktivnog supply dropa. `%uhc_line10%` koristi animaciju
-`%animation:pruga%`, pa je za nju potreban plugin koji pruža tu animaciju.
+Svaki redak ima sljedeću ulogu:
+
+| Placeholder | Sadržaj |
+| --- | --- |
+| `%uhc_line1%` | Prazan redak na početku scoreboarda. |
+| `%uhc_razmak%` | Prazan redak; alternativni naziv za `%uhc_line1%`. |
+| `%uhc_stoperica%` | Vrijeme proteklo od početka UHC-a u formatu `sati:minute:sekunde`. |
+| `%uhc_line2%` | Naslov `Supply Drop:`. |
+| `%uhc_line3%` | Odbrojavanje do sljedećeg supply dropa ili njegovo trenutno stanje. |
+| `%uhc_line4%` | Prazan redak prije Top Killovi sekcije kada postoji barem jedan killer. |
+| `%uhc_line5%` | Naslov `Top Killovi:` kada postoji barem jedan killer. |
+| `%uhc_line6%` | Prvo mjesto na kill tablici, u zlatnoj boji. |
+| `%uhc_line7%` | Drugo mjesto na kill tablici, u srebrnoj boji. |
+| `%uhc_line8%` | Treće mjesto na kill tablici, u brončanoj boji. |
+| `%uhc_line9%` | Prazan redak nakon Top 3 killova. |
+
+Top 3 placeholderi namijenjeni su scoreboardu koji uvijek prikazuje tri mjesta;
+potrebno je imati barem tri igrača u Top Killovi listi.
 
 ## Installation
 
