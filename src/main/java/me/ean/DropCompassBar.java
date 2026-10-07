@@ -51,10 +51,9 @@ public class DropCompassBar {
                 }
                 ticksElapsed += 5;
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    playerBossBars.computeIfAbsent(player.getUniqueId(), uuid -> {
+                    if (!playerBossBars.containsKey(player.getUniqueId())) {
                         createBossBar(player);
-                        return playerBossBars.get(player.getUniqueId());
-                    });
+                    }
                     BossBar bossBar = playerBossBars.get(player.getUniqueId());
 
                     if (ticksElapsed <= SHOW_DROP_MESSAGE_TICKS) {

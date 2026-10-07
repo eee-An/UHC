@@ -12,6 +12,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -33,7 +34,7 @@ public class PlayerKillListener implements Listener {
             Player killer = event.getEntity().getKiller();
 
             ItemStack specialTotem = SpecialItemCreator.createSpecialTotem();
-            event.getEntity().getKiller().getInventory().addItem(specialTotem);
+            giveTotem(killer, specialTotem);
 
             // Increment killer's kill count
 //            Map<Player, Integer> playerKills = Main.getPlayerKills();
@@ -43,11 +44,19 @@ public class PlayerKillListener implements Listener {
         }
 
         if (plugin.isUhcActive()) {
+            plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING);
+            plugin.getLogger().info("[UHC DEBUG] DEATH player=" + player.getName()
+                    + " state=SPECTATING"
+                    + " currentGamemode=" + player.getGameMode()
+                    + " targetGamemode=" + GameMode.SPECTATOR);
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 player.spigot().respawn(); // Instantly respawn the player
                 player.teleport(deathLocation); // Teleport to death location
                 player.setGameMode(GameMode.SPECTATOR); // Set to spectator mode
                 plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING); // Update player state
+                plugin.getLogger().info("[UHC DEBUG] DEATH applied player=" + player.getName()
+                        + " gamemode=" + player.getGameMode()
+                        + " state=" + plugin.getPlayerStates().get(player.getUniqueId()));
 
                 List<Player> playingPlayers = Bukkit.getOnlinePlayers().stream()
                         .filter(p -> plugin.getPlayerStates().get(p.getUniqueId()) == PlayerState.PLAYING)
@@ -96,8 +105,15 @@ public class PlayerKillListener implements Listener {
         if (plugin.isUhcActive() && event.getEntity().getType() == EntityType.ZOMBIE && event.getEntity().getKiller() != null) {
             if ("§6Totem Zombie".equals(event.getEntity().getCustomName())) {
                 ItemStack specialTotem = SpecialItemCreator.createSpecialTotem();
-                event.getEntity().getKiller().getInventory().addItem(specialTotem);
+                giveTotem(event.getEntity().getKiller(), specialTotem);
             }
+        }
+    }
+
+    private void giveTotem(Player player, ItemStack totem) {
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(totem);
+        for (ItemStack leftover : leftovers.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), leftover);
         }
     }
 }

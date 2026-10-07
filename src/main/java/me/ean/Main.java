@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -40,6 +41,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private static Main instance;
     private GameState state = GameState.WAITING;
     private Map<UUID,PlayerState> playerStates = new HashMap<>();
+    private final Map<UUID, GameMode> disconnectedGameModes = new HashMap<>();
     private List<Player> igraci = new ArrayList<>();
     private World uhcWorld;
     private Map<Player, Integer> pojedeneJabuke = new HashMap<>();
@@ -130,7 +132,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private void registerCommands() {
         /* Register commands whose listener is this class (onCommand method) */
         for (String command : Arrays.asList(
-                "startuhc", "resetstate", "bacisupplydrop", "configreload", "enduhc", "winnerceremony"
+                "startuhc", "resetstate", "bacisupplydrop", "configreload", "enduhc"
         )) {
             var cmd = getCommand(command);
             if (cmd == null) {
@@ -151,6 +153,33 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             return;
         }
 
+        PlayerState playerState = playerStates.get(playerUUID);
+        getLogger().info("[UHC DEBUG] JOIN player=" + player.getName()
+                + " state=" + playerState
+                + " currentGamemode=" + player.getGameMode()
+                + " savedGamemode=" + disconnectedGameModes.get(playerUUID));
+        if (playerState == PlayerState.PLAYING
+                || playerState == PlayerState.SPECTATING
+                || playerState == PlayerState.WINNER) {
+            if (playerState == PlayerState.SPECTATING) {
+                disconnectedGameModes.remove(playerUUID);
+                getLogger().info("[UHC DEBUG] JOIN target player=" + player.getName()
+                        + " targetGamemode=" + GameMode.SPECTATOR);
+                enforceSpectatorAfterJoin(player, 1L);
+                enforceSpectatorAfterJoin(player, 5L);
+                enforceSpectatorAfterJoin(player, 20L);
+            } else {
+                GameMode previousGameMode = disconnectedGameModes.remove(playerUUID);
+                if (previousGameMode != null) {
+                    getLogger().info("[UHC DEBUG] JOIN target player=" + player.getName()
+                            + " targetGamemode=" + previousGameMode);
+                    player.setGameMode(previousGameMode);
+                }
+            }
+
+            return;
+        }
+
         if (state == GameState.WAITING) {
             igraci.add(player);
         }
@@ -159,8 +188,49 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
+    private void enforceSpectatorAfterJoin(Player player, long delay) {
+        getServer().getScheduler().runTaskLater(this, () -> {
+            if (!player.isOnline() || playerStates.get(player.getUniqueId()) != PlayerState.SPECTATING) {
+                return;
+            }
+            GameMode before = player.getGameMode();
+            if (before != GameMode.SPECTATOR) {
+                player.setGameMode(GameMode.SPECTATOR);
+            }
+            getLogger().info("[UHC DEBUG] JOIN check +" + delay + " ticks player=" + player.getName()
+                    + " before=" + before + " after=" + player.getGameMode());
+        }, delay);
+    }
+
+    @EventHandler
+    public void onPlayerGameModeChange(PlayerGameModeChangeEvent event) {
+        Player player = event.getPlayer();
+        if (playerStates.get(player.getUniqueId()) == PlayerState.SPECTATING
+                && event.getNewGameMode() != GameMode.SPECTATOR) {
+            getLogger().warning("[UHC DEBUG] GAMEMODE OVERRIDE player=" + player.getName()
+                    + " current=" + player.getGameMode()
+                    + " requested=" + event.getNewGameMode());
+        }
+    }
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID playerUUID = event.getPlayer().getUniqueId();
+        PlayerState playerState = playerStates.get(playerUUID);
+        if (playerState == PlayerState.PLAYING && event.getPlayer().isDead()) {
+            playerStates.put(playerUUID, PlayerState.SPECTATING);
+            playerState = PlayerState.SPECTATING;
+        }
+        if (playerState == PlayerState.PLAYING
+                || playerState == PlayerState.SPECTATING
+                || playerState == PlayerState.WINNER) {
+            GameMode currentGameMode = event.getPlayer().getGameMode();
+            disconnectedGameModes.put(playerUUID, currentGameMode);
+            getLogger().info("[UHC DEBUG] QUIT player=" + event.getPlayer().getName()
+                    + " state=" + playerState
+                    + " gamemode=" + currentGameMode
+                    + " savedGamemode=" + disconnectedGameModes.get(playerUUID));
+        }
         if (state == GameState.WAITING || state == GameState.COUNTDOWN) {
             igraci.remove(event.getPlayer());
         }
@@ -241,19 +311,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             } catch (IOException e) {
                 sender.sendMessage("§cFailed to reload config: " + e.getMessage());
             }
-        } else if (label.equalsIgnoreCase("winnerceremony")) {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("Konzola ne moze pokrenuti ceremoniju pobjednika.");
-                return true;
-            }
-            if (igraci.isEmpty()) {
-                player.sendMessage("Nema igraca za ceremoniju pobjednika.");
-                return true;
-            }
-            if (winnerCeremonyManager == null) {
-                winnerCeremonyManager = new WinnerCeremonyManager(this);
-            }
-            winnerCeremonyManager.celebrateWinner();
         }
         return true;
     }
