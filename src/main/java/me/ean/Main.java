@@ -56,6 +56,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private long uhcStartTime = -1;
 
     private final List<TopKiller> topKillers = new ArrayList<>();
+    private final List<UUID> eliminatedPlayers = new ArrayList<>();
     private final List<BukkitRunnable> activeTasks = new ArrayList<>();
 
     private final List<SupplyDrop> drops = new ArrayList<>();
@@ -258,18 +259,39 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (label.equalsIgnoreCase("startuhc")) {
 //            Bukkit.broadcastMessage("evo igraci: " + String.join(", ", igraci.stream().map(Player::getName).toList()));
             state = GameState.COUNTDOWN;
+            Bukkit.getOnlinePlayers().forEach(player ->
+                    player.sendTitle(
+                            configValues.getStartIntroTitle(),
+                            configValues.getStartIntroSubtitle(),
+                            10, configValues.getStartIntroDurationSeconds() * 20, 10));
             BukkitRunnable updater = new BukkitRunnable() {
                 int ticks = 0;
 
                 @Override
                 public void run() {
                     ticks++;
-                    if (ticks == 100) {
+                    int introTicks = configValues.getStartIntroDurationSeconds() * 20;
+                    int countdownTicks = configValues.getStartCountdownSeconds() * 20;
+                    int countdownStart = introTicks + 1;
+                    if (ticks >= introTicks + countdownTicks) {
+                        Bukkit.getOnlinePlayers().forEach(player ->
+                                player.sendTitle(
+                                        configValues.getUhcStartTitle(),
+                                        configValues.getUhcStartSubtitle(),
+                                        0, 40, 10));
                         Main.this.startUHC(sender);
                         this.cancel();
-                    } else if (ticks % 20 == 1) {
-                        Bukkit.broadcastMessage("UHC pocinje za " + (101 - ticks) / 20 + " sekundi!");
-                        //TODO: Sredi broadcast preko titla
+                    } else if (ticks >= countdownStart
+                            && (ticks - countdownStart) % 20 == 0) {
+                        int seconds = configValues.getStartCountdownSeconds()
+                                - ((ticks - countdownStart) / 20);
+                        String subtitle = configValues.getStartCountdownSubtitle()
+                                .replace("{seconds}", String.valueOf(seconds));
+                        Bukkit.getOnlinePlayers().forEach(player ->
+                                player.sendTitle(
+                                        configValues.getStartCountdownTitle(),
+                                        subtitle,
+                                        0, 25, 5));
                     }
                 }
             };
@@ -332,13 +354,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         state = GameState.PLAYING;
         uhcStartTime = System.currentTimeMillis();
         uhcWorld.setDifficulty(configValues.getGameDifficulty());
+        getLogger().info("[UHC DEBUG] " + configValues.getUhcStartedMessage());
 
         var border = uhcWorld.getWorldBorder();
         border.setCenter(configValues.getInitialBorderCenterX(), configValues.getInitialBorderCenterZ());
         border.setSize(configValues.getInitialBorderSize());
-        Bukkit.broadcastMessage(configValues.getUhcStartedMessage());
 
         topKillers.clear();
+        eliminatedPlayers.clear();
 
         Collections.shuffle(configValues.getSpawnLokacije());
 
@@ -478,7 +501,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         border.setCenter(configValues.getInitialBorderCenterX(), configValues.getInitialBorderCenterZ());
 
         borderManager.stopBorderCenterParticles();
-        Bukkit.broadcastMessage(configValues.getUhcEndedMessage());
+        getLogger().info("[UHC DEBUG] " + configValues.getUhcEndedMessage());
     }
 
 

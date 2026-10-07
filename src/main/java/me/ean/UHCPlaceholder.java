@@ -115,7 +115,7 @@ public class UHCPlaceholder extends PlaceholderExpansion {
                 return formatTime(secondsLeft);
             }
         }
-        return "Nema više dropova!";
+        return "§eNema više dropova!";
     }
 
     private int getKillsForPlayer(Player player) {

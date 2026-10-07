@@ -68,6 +68,28 @@ public class ConfigValues {
     private String uhcEndedMessage;
     private String notEnoughSpawnsMessage;
     private String lootTableMissingMessage;
+    private int startCountdownSeconds;
+    private String startCountdownTitle;
+    private String startCountdownSubtitle;
+    private String uhcStartTitle;
+    private String uhcStartSubtitle;
+    private String startIntroTitle;
+    private String startIntroSubtitle;
+    private int startIntroDurationSeconds;
+    private String resultsHeader;
+    private String resultsTitle;
+    private String resultsWinnerLine;
+    private String resultsFirstKillerLine;
+    private String resultsSecondKillerLine;
+    private String resultsThirdKillerLine;
+    private String resultsHonorableMentionsTitle;
+    private String resultsHonorableMentionLine;
+    private String resultsFooter;
+    private String winnerAnnouncementTitle;
+    private String winnerAnnouncementSubtitle;
+    private int winnerAnnouncementFadeInTicks;
+    private int winnerAnnouncementStayTicks;
+    private int winnerAnnouncementFadeOutTicks;
 
     public ConfigValues(Main plugin, YamlDocument config) {
         this.plugin = plugin;
@@ -101,6 +123,28 @@ public class ConfigValues {
         uhcEndedMessage = yamlConfig.getString("messages.uhc-ended", "§cUHC je završen.");
         notEnoughSpawnsMessage = yamlConfig.getString("messages.not-enough-spawns", "§cNema dovoljno spawn lokacija za sve igrače.");
         lootTableMissingMessage = yamlConfig.getString("messages.loot-table-missing", "§cSupply drop loot table ne postoji.");
+        startCountdownSeconds = yamlConfig.getInt("start-countdown.seconds", 5);
+        startCountdownTitle = yamlConfig.getString("start-countdown.title", "§6UHC");
+        startCountdownSubtitle = yamlConfig.getString("start-countdown.subtitle", "§fPočinje za §e{seconds} §fsekundi");
+        uhcStartTitle = yamlConfig.getString("start-countdown.started-title", "§aUHC JE POČEO!");
+        uhcStartSubtitle = yamlConfig.getString("start-countdown.started-subtitle", "§fSretno svima!");
+        startIntroTitle = yamlConfig.getString("start-countdown.intro-title", "§6Dobro dosli u UHC sezone 6");
+        startIntroSubtitle = yamlConfig.getString("start-countdown.intro-subtitle", "§eFloxyCrafta");
+        startIntroDurationSeconds = yamlConfig.getInt("start-countdown.intro-duration-seconds", 3);
+        resultsHeader = yamlConfig.getString("results.header", "§6§l----- Floxy UHC - REZULTATI -----");
+        resultsTitle = yamlConfig.getString("results.title", "        §6§lFloxyCraft Sezona 6 UHC");
+        resultsWinnerLine = yamlConfig.getString("results.winner-line", "§e§lPobjednik: §f{player}");
+        resultsFirstKillerLine = yamlConfig.getString("results.first-killer-line", "§6§l1. §f{player} §7- §c{kills} killova");
+        resultsSecondKillerLine = yamlConfig.getString("results.second-killer-line", "§f§l2. §f{player} §7- §c{kills} killova");
+        resultsThirdKillerLine = yamlConfig.getString("results.third-killer-line", "§c§l3. §f{player} §7- §c{kills} killova");
+        resultsHonorableMentionsTitle = yamlConfig.getString("results.honorable-mentions-title", "§6§lHonorable mentions:");
+        resultsHonorableMentionLine = yamlConfig.getString("results.honorable-mention-line", "§7- §f{player} §7- §c{kills} killova");
+        resultsFooter = yamlConfig.getString("results.footer", "§6§l--------------------------------");
+        winnerAnnouncementTitle = yamlConfig.getString("winner-announcement.title", "{player}");
+        winnerAnnouncementSubtitle = yamlConfig.getString("winner-announcement.subtitle", "je osvojio Floxy UHC Sezona 6");
+        winnerAnnouncementFadeInTicks = yamlConfig.getInt("winner-announcement.fade-in-ticks", 5);
+        winnerAnnouncementStayTicks = yamlConfig.getInt("winner-announcement.stay-ticks", 100);
+        winnerAnnouncementFadeOutTicks = yamlConfig.getInt("winner-announcement.fade-out-ticks", 5);
 
         spawnLokacije.clear();
         List<Map<?, ?>> spawnLocations = yamlConfig.getMapList("spawn-locations");

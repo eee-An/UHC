@@ -22,6 +22,7 @@ public class WinnerCeremonyManager {
     }
 
     public void celebrateWinner() {
+        broadcastResults();
         plugin.endUhc();
 
         Map<UUID, Player> spectators = new HashMap<>();
@@ -103,5 +104,56 @@ public class WinnerCeremonyManager {
         };
         plugin.registerTask(updater);
         updater.runTaskTimer(plugin, 0L, plugin.getConfigValues().getWinnerFireworksIntervalTicks());
+    }
+
+    private void broadcastResults() {
+        Player winner = findWinner();
+        if (winner == null) {
+            return;
+        }
+
+        ConfigValues config = plugin.getConfigValues();
+        Bukkit.broadcastMessage(config.getResultsHeader());
+        Bukkit.broadcastMessage(config.getResultsTitle());
+        Bukkit.broadcastMessage(config.getResultsWinnerLine().replace("{player}", winner.getName()));
+        Bukkit.broadcastMessage("");
+
+        if (!plugin.getTopKillers().isEmpty()) {
+            int topKillersCount = Math.min(3, plugin.getTopKillers().size());
+            for (int rank = 0; rank < topKillersCount; rank++) {
+                TopKiller killer = plugin.getTopKillers().get(rank);
+                String template = switch (rank) {
+                    case 0 -> config.getResultsFirstKillerLine();
+                    case 1 -> config.getResultsSecondKillerLine();
+                    default -> config.getResultsThirdKillerLine();
+                };
+                Bukkit.broadcastMessage(formatKillerLine(template, rank + 1, killer));
+            }
+
+            if (plugin.getTopKillers().size() > topKillersCount) {
+                Bukkit.broadcastMessage(config.getResultsHonorableMentionsTitle());
+                for (int index = topKillersCount; index < plugin.getTopKillers().size(); index++) {
+                    TopKiller killer = plugin.getTopKillers().get(index);
+                    Bukkit.broadcastMessage(formatKillerLine(config.getResultsHonorableMentionLine(), 0, killer));
+                }
+            }
+        }
+        Bukkit.broadcastMessage(config.getResultsFooter());
+    }
+
+    private String formatKillerLine(String template, int rank, TopKiller killer) {
+        return template
+                .replace("{rank}", String.valueOf(rank))
+                .replace("{player}", killer.getPlayerName())
+                .replace("{kills}", String.valueOf(killer.getKills()));
+    }
+
+    private Player findWinner() {
+        for (Map.Entry<UUID, PlayerState> entry : plugin.getPlayerStates().entrySet()) {
+            if (entry.getValue() == PlayerState.WINNER) {
+                return plugin.getServer().getPlayer(entry.getKey());
+            }
+        }
+        return null;
     }
 }

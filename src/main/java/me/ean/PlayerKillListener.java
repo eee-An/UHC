@@ -45,6 +45,8 @@ public class PlayerKillListener implements Listener {
 
         if (plugin.isUhcActive()) {
             plugin.getPlayerStates().put(player.getUniqueId(), PlayerState.SPECTATING);
+            plugin.getEliminatedPlayers().remove(player.getUniqueId());
+            plugin.getEliminatedPlayers().add(player.getUniqueId());
             plugin.getLogger().info("[UHC DEBUG] DEATH player=" + player.getName()
                     + " state=SPECTATING"
                     + " currentGamemode=" + player.getGameMode()
@@ -68,7 +70,14 @@ public class PlayerKillListener implements Listener {
 
                     // posalji svima title: ime winnera
                     Bukkit.getOnlinePlayers().forEach(p -> {
-                        p.sendTitle(winner.getName(), "je osvojio Floxy UHC Sezona 6", 5, 1000, 5);
+                        p.sendTitle(
+                                plugin.getConfigValues().getWinnerAnnouncementTitle()
+                                        .replace("{player}", winner.getName()),
+                                plugin.getConfigValues().getWinnerAnnouncementSubtitle()
+                                        .replace("{player}", winner.getName()),
+                                plugin.getConfigValues().getWinnerAnnouncementFadeInTicks(),
+                                plugin.getConfigValues().getWinnerAnnouncementStayTicks(),
+                                plugin.getConfigValues().getWinnerAnnouncementFadeOutTicks());
                     });
 
                     plugin.getPlayerStates().put(winner.getUniqueId(), PlayerState.WINNER);

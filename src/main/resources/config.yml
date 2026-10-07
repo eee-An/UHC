@@ -3,8 +3,8 @@ world-name: world
 game:
   difficulty: HARD
   initial-border:
-    center-x: 477.5
-    center-z: -450.5
+    center-x: 0.0
+    center-z: 0.0
     size: 4000.0
 
 start-settings:
@@ -25,6 +25,34 @@ messages:
   uhc-ended: "§cUHC je završen."
   not-enough-spawns: "§cNema dovoljno spawn lokacija za sve igrače."
   loot-table-missing: "§cSupply drop loot table ne postoji."
+
+start-countdown:
+  seconds: 15
+  intro-title: "§6Dobro dosli u UHC sezone 6"
+  intro-subtitle: "§eFloxyCrafta"
+  intro-duration-seconds: 3
+  title: " "
+  subtitle: "§fUHC pocinje za §e{seconds} §fsekundi"
+  started-title: "§aUHC JE POČEO!"
+  started-subtitle: "§fSretno svima!"
+
+winner-announcement:
+  title: "§6{player}"
+  subtitle: "§eje osvojio Floxy UHC Sezona 6"
+  fade-in-ticks: 5
+  stay-ticks: 100
+  fade-out-ticks: 5
+
+results:
+  header: "§6§l■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■"
+  title: "             §6§lFloxyCraft Sezona 6 UHC"
+  winner-line: "       §ePobjednik: {player}"
+  first-killer-line: "   §#FFAA001. {player} §7- §7{kills} killova"
+  second-killer-line: "   §#CECACA2. {player} §7- §7{kills} killova"
+  third-killer-line: "   §#B4684D3. {player} §7- §7{kills} killova"
+  honorable-mentions-title: "      §6Honorable mentions:"
+  honorable-mention-line: "   §7- {player} §7- {kills} killova"
+  footer: "§6§l■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■"
 
 spawn-locations:
   - {X: 0.5, Y: 98, Z: 0.5, yaw: 0.0, pitch: 0.0}
