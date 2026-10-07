@@ -15,7 +15,7 @@ commands:
   testborder:
     description: testiram border
     permission: op
-  startuhc:
+  uhcstart:
     description: start uhc
     permission: op
   resetstate:
@@ -24,7 +24,7 @@ commands:
   bacisupplydrop:
     description: supplyaj drop
     permission: op
-  enduhc:
+  uhcend:
     description: end uhc
     permission: op
   configreload:

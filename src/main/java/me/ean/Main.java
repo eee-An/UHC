@@ -133,7 +133,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private void registerCommands() {
         /* Register commands whose listener is this class (onCommand method) */
         for (String command : Arrays.asList(
-                "startuhc", "resetstate", "bacisupplydrop", "configreload", "enduhc"
+                "uhcstart", "resetstate", "bacisupplydrop", "configreload", "uhcend"
         )) {
             var cmd = getCommand(command);
             if (cmd == null) {
@@ -256,7 +256,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, String label, String[] args) {
-        if (label.equalsIgnoreCase("startuhc")) {
+        if (label.equalsIgnoreCase("uhcstart")) {
 //            Bukkit.broadcastMessage("evo igraci: " + String.join(", ", igraci.stream().map(Player::getName).toList()));
             state = GameState.COUNTDOWN;
             Bukkit.getOnlinePlayers().forEach(player ->
@@ -311,7 +311,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 throw new RuntimeException(e);
             }
 //            player.sendMessage("Spawnan supply drop");
-        }else if (label.equalsIgnoreCase("enduhc")) {
+        }else if (label.equalsIgnoreCase("uhcend")) {
             if (sender instanceof Player player) {
                 if (player.hasPermission("uhc.end")) {
                     endUhc();

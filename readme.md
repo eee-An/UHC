@@ -49,7 +49,6 @@ drugim PlaceholderAPI podržanim pluginima u ovom formatu:
 %uhc_line7%
 %uhc_line8%
 %uhc_line9%
-%uhc_line10%
 ```
 
 `%uhc_stoperica%` prikazuje vrijeme partije, a `%uhc_line3%` prikazuje stanje
@@ -76,8 +75,8 @@ Sve komande su prema trenutnoj konfiguraciji dostupne operatorima.
 
 | Command | Description |
 | --- | --- |
-| `/startuhc` | Pokreće UHC partiju |
-| `/enduhc` | Završava trenutnu partiju |
+| `/uhcstart` | Pokreće UHC partiju |
+| `/uhcend` | Završava trenutnu partiju |
 | `/resetstate` | Vraća stanje plugina u `WAITING` |
 | `/bacisupplydrop` | Ručno baca supply drop na lokaciju igrača |
 | `/configreload` | Ponovno učitava `config.yml` |
@@ -94,8 +93,8 @@ Najvažnije sekcije:
 game:
   difficulty: HARD
   initial-border:
-    center-x: 477.5
-    center-z: -450.5
+    center-x: 0.5
+    center-z: -0.5
     size: 4000.0
 
 start-settings:
@@ -131,18 +130,6 @@ scheduled-actions:
 
 Vrijednosti `delay` i `duration` za border izražene su u sekundama, a
 `time` koristi format `hours:minutes:seconds`.
-
-## Building
-
-Projekt koristi Maven. Za izgradnju plugina pokreni:
-
-```bash
-mvn clean package
-```
-
-Gotovi artefakti generiraju se u `target/` direktoriju. `pom.xml` trenutno
-sadrži lokalni Windows output direktorij za kopiranje JAR-a; po potrebi ga
-prilagodi svom serveru prije buildanja.
 
 ## Credits
 
